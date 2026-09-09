@@ -1,0 +1,4 @@
+gpu-memory-utilization: 0.60
+max-model-len: 16384
+max-num-batched-tokens: 8192
+api-server-count: 1
