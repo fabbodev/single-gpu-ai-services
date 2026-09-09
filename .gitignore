@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Model weights / large AI assets
+*.gguf
+*.safetensors
+*.bin
+*.onnx
+*.pt
+*.pth
+models/
+
+# Runtime output
+*.log
+.cache/
