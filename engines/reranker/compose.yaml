@@ -1,0 +1,33 @@
+services:
+  reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:86-1.9
+    container_name: ai-reranker
+    restart: "no"
+
+    gpus: all
+
+    command:
+      - --model-id
+      - /data/models--BAAI--bge-reranker-v2-m3/snapshots/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e
+      - --served-model-name
+      - bge-reranker-v2-m3
+      - --dtype
+      - float16
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --max-batch-tokens
+      - "16384"
+      - --max-client-batch-size
+      - "32"
+
+    volumes:
+      - /opt/ai-services/models/reranker/hf-cache:/data:ro
+
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true

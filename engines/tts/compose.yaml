@@ -1,0 +1,27 @@
+services:
+  tts:
+    image: ai-services/coqui-tts:1.0
+    container_name: ai-tts
+    restart: "no"
+    gpus: all
+    entrypoint:
+      - /opt/venv/bin/tts-server
+    command:
+      - --model_path
+      - /root/.local/share/tts/tts_models--es--css10--vits/model_file.pth.tar
+      - --config_path
+      - /root/.local/share/tts/tts_models--es--css10--vits/config.json
+      - --port
+      - "5002"
+      - --device
+      - cuda
+    volumes:
+      - /opt/ai-services/models/tts/tts_models--es--css10--vits:/root/.local/share/tts/tts_models--es--css10--vits:ro
+    ports:
+      - "127.0.0.1:5002:5002"
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true
