@@ -20,6 +20,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: pytest -q
+      - run: docker build -t single-gpu-ai-services-gateway:test .
 
   dispatcher:
     runs-on: ubuntu-latest
@@ -33,3 +34,19 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: pytest -q
+      - run: docker build -t single-gpu-ai-services-dispatcher:test .
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose files
+        run: |
+          docker compose -f gateway/compose.yaml config >/dev/null
+          docker compose -f dispatcher/compose.yaml config >/dev/null
+          docker compose -f engines/llm/compose.yaml config >/dev/null
+          docker compose -f engines/stt/compose.yaml config >/dev/null
+          docker compose -f engines/tts/compose.yaml config >/dev/null
+          docker compose -f engines/embeddings/compose.yaml config >/dev/null
+          docker compose -f engines/reranker/compose.yaml config >/dev/null
+          docker compose -f engines/ocr/compose.yaml config >/dev/null
