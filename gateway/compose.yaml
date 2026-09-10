@@ -1,0 +1,13 @@
+services:
+  gateway:
+    build: .
+    container_name: ai-gateway
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true
