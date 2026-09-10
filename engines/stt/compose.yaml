@@ -1,0 +1,19 @@
+services:
+  stt:
+    image: ghcr.io/speaches-ai/speaches:latest-cuda
+    container_name: ai-stt
+    restart: "no"
+    gpus: all
+    environment:
+      HF_HOME: /home/ubuntu/.cache/huggingface
+      STT_MODEL_TTL: "300"
+    volumes:
+      - /opt/ai-services/models/stt/hf-cache:/home/ubuntu/.cache/huggingface
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true

@@ -1,0 +1,13 @@
+services:
+  dispatcher:
+    build: .
+    container_name: ai-dispatcher
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true
