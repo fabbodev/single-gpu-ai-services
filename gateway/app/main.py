@@ -107,7 +107,18 @@ async def chat_completions(payload: dict):
     model = payload.get("model", PUBLIC_LLM_MODEL)
     if model != PUBLIC_LLM_MODEL:
         raise HTTPException(status_code=400, detail=f"Unsupported model: {model}")
-    backend_payload = {key: payload[key] for key in ("model", "messages", "temperature", "max_tokens", "top_p", "stop") if key in payload}
+    allowed_fields = (
+        "model",
+        "messages",
+        "temperature",
+        "max_tokens",
+        "top_p",
+        "stop",
+        "tools",
+        "tool_choice",
+        "parallel_tool_calls",
+    )
+    backend_payload = {key: payload[key] for key in allowed_fields if key in payload}
     backend_payload["model"] = PUBLIC_LLM_MODEL
     backend_payload["stream"] = False
     acquired = False
