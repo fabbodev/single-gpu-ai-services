@@ -59,6 +59,63 @@ def test_chat_completions_acquires_llm_forwards_request_and_releases(monkeypatch
     assert events[-1] == ("release", "llm")
 
 
+def test_chat_completions_forwards_tool_calling_fields(monkeypatch):
+    forwarded = {}
+
+    class FakeDispatcher:
+        async def acquire(self, service):
+            pass
+
+        async def release(self, service):
+            pass
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"message": {"role": "assistant", "tool_calls": []}}]}
+
+    class FakeHTTPClient:
+        async def post(self, url, json):
+            forwarded.update(json)
+            return FakeResponse()
+
+    monkeypatch.setattr(main, "dispatcher", FakeDispatcher())
+    monkeypatch.setattr(main, "http_client", FakeHTTPClient())
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_document",
+                "description": "Read a document with OCR",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"content_base64": {"type": "string"}},
+                    "required": ["content_base64"],
+                },
+            },
+        }
+    ]
+
+    response = client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "qwen3-8b",
+            "messages": [{"role": "user", "content": "Read this document"}],
+            "tools": tools,
+            "tool_choice": "auto",
+            "parallel_tool_calls": False,
+        },
+    )
+
+    assert response.status_code == 200
+    assert forwarded["tools"] == tools
+    assert forwarded["tool_choice"] == "auto"
+    assert forwarded["parallel_tool_calls"] is False
+
+
 def test_chat_completions_rejects_unsupported_model_without_acquiring(monkeypatch):
     events = []
 
