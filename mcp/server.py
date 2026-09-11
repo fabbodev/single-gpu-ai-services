@@ -124,5 +124,48 @@ mcp = FastMCP("single-gpu-ai-services")
 
 
 @mcp.tool
-aasync def _placeholder():
-    pass
+async def read_document(filename: str, content_base64: str, content_type: str) -> dict[str, Any]:
+    """Read a PDF or image with the GPU OCR service.
+
+    The caller must provide the file bytes as base64 because the MCP server may
+    run on a different machine from the agent and cannot dereference a client-local path.
+    """
+    return await gateway_client.read_document(filename, content_base64, content_type)
+
+
+@mcp.tool
+async def transcribe_audio(
+    filename: str,
+    content_base64: str,
+    content_type: str,
+    language: str | None = None,
+) -> dict[str, Any]:
+    """Transcribe audio with the GPU speech-to-text service."""
+    return await gateway_client.transcribe_audio(
+        filename,
+        content_base64,
+        content_type,
+        language=language,
+    )
+
+
+@mcp.tool
+async def generate_speech(text: str) -> dict[str, str]:
+    """Generate a WAV speech file and return it as base64."""
+    return await gateway_client.generate_speech(text)
+
+
+@mcp.tool
+async def embed_text(input: str | list[str]) -> dict[str, Any]:
+    """Create embeddings for one string or a list of strings."""
+    return await gateway_client.embed_text(input)
+
+
+@mcp.tool
+async def rerank_documents(query: str, documents: list[str]) -> dict[str, Any]:
+    """Rerank candidate documents by relevance to a query."""
+    return await gateway_client.rerank_documents(query, documents)
+
+
+if __name__ == "__main__":
+    mcp.run(transport="http", host="0.0.0.0", port=8091)
