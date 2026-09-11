@@ -161,9 +161,11 @@ Those numbers describe the verified private reference snapshot. They are not a c
 
 ## MCP
 
-MCP is **not required** and is intentionally not part of the core project. The REST/OpenAPI Gateway is the primary interface.
+MCP is **optional** and remains outside the core GPU lifecycle. The REST/OpenAPI Gateway is still the primary interface.
 
-If an MCP-capable client needs these services, an external REST/OpenAPI-to-MCP adapter can be placed in front of the Gateway. See [`docs/MCP.md`](docs/MCP.md).
+An optional FastMCP adapter under `mcp/` exposes OCR, STT, TTS, embeddings, and reranking as MCP tools for agent frameworks such as OpenClaw or GolemBot. Qwen itself remains the model/provider rather than an MCP tool.
+
+The adapter listens on Streamable HTTP at `/mcp`, defaults to loopback-only host publication, and calls the Gateway rather than the Dispatcher. See [`docs/MCP.md`](docs/MCP.md).
 
 ## Documentation
 
@@ -172,7 +174,7 @@ If an MCP-capable client needs these services, an external REST/OpenAPI-to-MCP a
 - [`SECURITY.md`](SECURITY.md) — Docker socket and exposure model
 - [`docs/API.md`](docs/API.md) — endpoint contracts and examples
 - [`docs/MODELS.md`](docs/MODELS.md) — model files and directory layout
-- [`docs/MCP.md`](docs/MCP.md) — optional MCP integration
+- [`docs/MCP.md`](docs/MCP.md) — optional FastMCP integration
 
 ## Project status
 
