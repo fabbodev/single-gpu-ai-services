@@ -1,0 +1,16 @@
+services:
+  mcp:
+    build: .
+    container_name: ai-mcp
+    restart: unless-stopped
+    environment:
+      GATEWAY_URL: http://ai-gateway:8090
+      MCP_GATEWAY_TIMEOUT: "300"
+    ports:
+      - "${MCP_BIND_ADDRESS:-127.0.0.1}:8091:8091"
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true
