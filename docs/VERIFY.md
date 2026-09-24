@@ -23,11 +23,16 @@ done
 
 The reference `dispatcher/compose.yaml` must not publish a host port. It may mount `/var/run/docker.sock`; the Gateway must not.
 
-## Gateway health
+## Gateway health and readiness
+
+`/health` and `/ready` are unprotected operational probes. Protected `/v1/*` endpoints require a bot API key.
 
 ```bash
 curl -fsS http://localhost:8090/health
-curl -fsS http://localhost:8090/v1/models
+curl -fsS http://localhost:8090/ready
+read -rsp "AI API key: " AI_API_KEY; echo
+curl -fsS http://localhost:8090/v1/models \
+  -H "Authorization: Bearer $AI_API_KEY"
 ```
 
 ## Unit tests

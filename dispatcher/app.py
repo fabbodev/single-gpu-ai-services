@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -10,6 +10,7 @@ from dispatcher import (
     StaleEpoch,
 )
 from engine_manager import EngineManager
+from internal_auth import require_internal_token
 from runner import SubprocessRunner
 
 
@@ -57,10 +58,10 @@ def health():
     return {"status": "ok", "service": "dispatcher"}
 
 
-@app.get("/ready")
+@app.get("/ready", dependencies=[Depends(require_internal_token)])
 def ready():
     return dispatcher.ready()
-@app.post("/acquire/{service}")
+@app.post("/acquire/{service}", dependencies=[Depends(require_internal_token)])
 def acquire(service: str, request: AcquireRequest):
     try:
         result = dispatcher.submit(
@@ -75,7 +76,7 @@ def acquire(service: str, request: AcquireRequest):
     return JSONResponse(result, status_code=status_code)
 
 
-@app.get("/leases/{request_id}")
+@app.get("/leases/{request_id}", dependencies=[Depends(require_internal_token)])
 def lease_status(
     request_id: str,
     epoch: str = Query(...),
@@ -86,7 +87,7 @@ def lease_status(
         raise _http_error(exc)
 
 
-@app.post("/release/{service}")
+@app.post("/release/{service}", dependencies=[Depends(require_internal_token)])
 def release(service: str, request: LeaseCommand):
     try:
         result = dispatcher.release(
@@ -100,7 +101,7 @@ def release(service: str, request: LeaseCommand):
     return JSONResponse(result, status_code=status_code)
 
 
-@app.post("/cancel/{service}")
+@app.post("/cancel/{service}", dependencies=[Depends(require_internal_token)])
 def cancel(service: str, request: LeaseCommand):
     try:
         result = dispatcher.cancel(

@@ -3,8 +3,21 @@ services:
     build: .
     container_name: ai-dispatcher
     restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 256m
+    pids_limit: 128
+    environment:
+      AI_DISPATCHER_TOKEN_FILE: /run/secrets/dispatcher-token
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - "${AI_SECRETS_DIR:-/etc/ai-services/secrets}/dispatcher-token:/run/secrets/dispatcher-token:ro"
     networks:
       - ai-services-internal
 

@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from app import main
 from app.main import app
 
-client = TestClient(app)
+client = TestClient(app, headers={"Authorization": "Bearer test-bot-token-not-a-real-secret"})
 
 
 def test_models_lists_reference_models():

@@ -61,7 +61,7 @@ class FakeDispatcher:
 def make_client():
     fake = FakeDispatcher()
     dispatcher_app.dispatcher = fake
-    return TestClient(dispatcher_app.app), fake
+    return TestClient(dispatcher_app.app, headers={"X-AI-Internal-Token": "test-internal-dispatcher-token-0123456789abcdef"}), fake
 
 
 def test_ready_exposes_epoch_and_readiness():

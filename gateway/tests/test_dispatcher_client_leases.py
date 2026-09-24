@@ -196,3 +196,65 @@ async def test_acquire_rejects_incompatible_dispatcher_protocol_before_submit():
         await client.acquire("llm")
 
     assert calls == ["/ready"]
+
+
+@pytest.mark.asyncio
+async def test_dispatcher_client_sends_internal_token_on_every_control_request():
+    seen = []
+
+    async def handler(request):
+        seen.append(
+            (
+                request.url.path,
+                request.headers.get("x-ai-internal-token"),
+            )
+        )
+        if request.url.path == "/ready":
+            return httpx.Response(
+                200,
+                json={
+                    "ready": True,
+                    "state": "idle",
+                    "epoch": "epoch-1",
+                    "protocol": 2,
+                },
+            )
+        if request.url.path == "/acquire/llm":
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": "req-1",
+                    "service": "llm",
+                    "state": "active",
+                },
+            )
+        if request.url.path == "/release/llm":
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": "req-1",
+                    "service": "llm",
+                    "state": "released",
+                },
+            )
+        raise AssertionError(request.url)
+
+    client = DispatcherClient(
+        "http://dispatcher.test",
+        transport=httpx.MockTransport(handler),
+        request_id_factory=lambda: "req-1",
+        internal_token="test-internal-token-0123456789abcdef",
+    )
+    lease = await client.acquire("llm")
+    await client.release(lease)
+
+    assert seen
+    assert all(token == "test-internal-token-0123456789abcdef" for _, token in seen)
+
+
+def test_dispatcher_client_rejects_internal_token_shorter_than_32_chars():
+    with pytest.raises(ValueError, match="too short"):
+        DispatcherClient(
+            "http://dispatcher.test",
+            internal_token="short-internal-token",
+        )

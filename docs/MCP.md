@@ -118,3 +118,10 @@ CI verifies:
 - the existing Dispatcher/Gateway tests and builds.
 
 CI does **not** have the RTX 3080 or model weights. After deployment, perform one live end-to-end check where Qwen emits a tool call, the LLM lease is released, a GPU tool runs, and Qwen resumes with the returned result.
+
+
+## MCP authentication
+
+The HTTP MCP endpoint requires the same per-bot bearer token model as Gateway. Configure the MCP client to send `Authorization: Bearer <bot-api-key>`. Tokens used through MCP require both `mcp` and `gateway` scopes because FastMCP forwards the original caller token to Gateway instead of replacing every caller with one shared service identity.
+
+The client token file contains only SHA-256 hashes. MCP file arguments are additionally bounded by `MCP_MAX_FILE_BYTES` (64 MiB by default) before base64 decoding.

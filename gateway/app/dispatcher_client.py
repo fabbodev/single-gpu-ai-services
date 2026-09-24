@@ -1,4 +1,6 @@
 import asyncio
+import os
+from pathlib import Path
 from dataclasses import dataclass
 import uuid
 
@@ -6,6 +8,7 @@ import httpx
 
 
 DISPATCHER_PROTOCOL_VERSION = 2
+DEFAULT_TOKEN_FILE = "/run/secrets/dispatcher-token"
 TERMINAL_STATES = {"released", "cancelled", "expired", "failed"}
 
 
@@ -31,6 +34,8 @@ class DispatcherClient:
         poll_interval=0.2,
         transport=None,
         request_id_factory=None,
+        internal_token=None,
+        token_file=None,
     ):
         self.base_url = base_url.rstrip("/")
         self.request_timeout = float(request_timeout)
@@ -41,6 +46,15 @@ class DispatcherClient:
         self.request_id_factory = request_id_factory or (
             lambda: str(uuid.uuid4())
         )
+        if internal_token is None:
+            token_path = token_file or os.getenv(
+                "AI_DISPATCHER_TOKEN_FILE",
+                DEFAULT_TOKEN_FILE,
+            )
+            internal_token = Path(token_path).read_text().strip()
+        if len(internal_token) < 32:
+            raise ValueError("dispatcher internal token is too short")
+        self.internal_token = internal_token
 
     @staticmethod
     def lease_handle(*, request_id, service, epoch):
@@ -55,7 +69,23 @@ class DispatcherClient:
             base_url=self.base_url,
             timeout=self.request_timeout,
             transport=self.transport,
+            headers={
+                "X-AI-Internal-Token": self.internal_token,
+            },
         )
+
+    async def ready(self):
+        async with self._client() as client:
+            response = await client.get("/ready")
+            response.raise_for_status()
+            body = response.json()
+            if body.get("protocol") != DISPATCHER_PROTOCOL_VERSION:
+                raise DispatcherAcquireError(
+                    "incompatible dispatcher protocol: "
+                    f"expected {DISPATCHER_PROTOCOL_VERSION}, "
+                    f"got {body.get('protocol')}"
+                )
+            return body
 
     async def acquire(self, service: str):
         request_id = self.request_id_factory()

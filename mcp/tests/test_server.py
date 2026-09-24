@@ -25,7 +25,7 @@ async def test_embed_text_posts_openai_compatible_payload():
         return httpx.Response(200, json={"data": [{"embedding": [0.1, 0.2]}]})
 
     gateway = make_gateway(handler)
-    result = await gateway.embed_text(["one", "two"])
+    result = await gateway.embed_text(["one", "two"], bearer_token="test-token")
     assert result["data"][0]["embedding"] == [0.1, 0.2]
 
 
@@ -41,7 +41,7 @@ async def test_rerank_documents_posts_query_and_documents():
         return httpx.Response(200, json={"results": [{"index": 1, "score": 0.9}]})
 
     gateway = make_gateway(handler)
-    result = await gateway.rerank_documents("best match", ["alpha", "beta"])
+    result = await gateway.rerank_documents("best match", ["alpha", "beta"], bearer_token="test-token")
     assert result["results"][0]["index"] == 1
 
 
@@ -57,7 +57,7 @@ async def test_read_document_sends_decoded_file_as_multipart():
         return httpx.Response(200, json={"model": "paddleocr-vl-1.6", "text": "Invoice total 42"})
 
     gateway = make_gateway(handler)
-    result = await gateway.read_document("invoice.pdf", payload, "application/pdf")
+    result = await gateway.read_document("invoice.pdf", payload, "application/pdf", bearer_token="test-token")
     assert result["text"] == "Invoice total 42"
 
 
@@ -74,7 +74,7 @@ async def test_transcribe_audio_sends_audio_and_language():
         return httpx.Response(200, json={"text": "hola"})
 
     gateway = make_gateway(handler)
-    result = await gateway.transcribe_audio("clip.wav", payload, "audio/wav", language="es")
+    result = await gateway.transcribe_audio("clip.wav", payload, "audio/wav", language="es", bearer_token="test-token")
     assert result == {"text": "hola"}
 
 
@@ -90,7 +90,7 @@ async def test_generate_speech_returns_base64_wav():
         return httpx.Response(200, content=b"RIFFfakewav", headers={"content-type": "audio/wav"})
 
     gateway = make_gateway(handler)
-    result = await gateway.generate_speech("hola")
+    result = await gateway.generate_speech("hola", bearer_token="test-token")
     assert result["media_type"] == "audio/wav"
     assert base64.b64decode(result["audio_base64"]) == b"RIFFfakewav"
 
@@ -102,10 +102,33 @@ async def test_gateway_errors_are_not_silently_swallowed():
 
     gateway = make_gateway(handler)
     with pytest.raises(httpx.HTTPStatusError):
-        await gateway.embed_text("hello")
+        await gateway.embed_text("hello", bearer_token="test-token")
 
 
 def test_default_gateway_timeout_covers_queue_startup_inference_and_cleanup():
     import server
 
     assert server.REQUEST_TIMEOUT_SECONDS == 600.0
+
+
+@pytest.mark.asyncio
+async def test_gateway_client_forwards_original_bot_bearer_token():
+    seen = {}
+
+    async def handler(request):
+        seen["authorization"] = request.headers.get("authorization")
+        return httpx.Response(
+            200,
+            json={"data": [{"embedding": [0.1]}]},
+        )
+
+    gateway = GatewayClient(
+        base_url="http://gateway.test",
+        transport=httpx.MockTransport(handler),
+    )
+    await gateway.embed_text(
+        "hello",
+        bearer_token="bot-token-123",
+    )
+
+    assert seen["authorization"] == "Bearer bot-token-123"

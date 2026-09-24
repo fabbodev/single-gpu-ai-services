@@ -129,6 +129,48 @@ TTS_IMAGE=your-registry/your-coqui-image:tag \
 
 TTS is the only engine in this reference snapshot whose original custom image build recipe was not preserved in the private code mirror. The repository documents this explicitly instead of inventing a supposedly tested recipe.
 
+## 7a. Create runtime authentication secrets
+
+Create a host-only directory outside the Git checkout:
+
+```bash
+sudo install -d -m 0700 -o root -g root /etc/ai-services/secrets
+```
+
+Generate one high-entropy API key per bot. Store only each key's SHA-256 digest in `/etc/ai-services/secrets/client-tokens.json` using this shape:
+
+```json
+{
+  "version": 1,
+  "clients": [
+    {
+      "client_id": "example-bot",
+      "token_sha256": "<64-hex-sha256>",
+      "scopes": ["gateway", "mcp"],
+      "enabled": true
+    }
+  ]
+}
+```
+
+Create a separate random shared secret in `/etc/ai-services/secrets/dispatcher-token` for Gateway-to-Dispatcher control traffic. Both secret files should be `root:root` mode `0400`.
+
+For a Tailscale-only deployment, create an environment file such as `/etc/ai-services/runtime.env`:
+
+```text
+GATEWAY_BIND_ADDRESS=<tailscale-ip>
+MCP_BIND_ADDRESS=<tailscale-ip>
+AI_SECRETS_DIR=/etc/ai-services/secrets
+```
+
+Use `docker compose --env-file /etc/ai-services/runtime.env ...` when creating or recreating Gateway, Dispatcher, and MCP. Keep each bot's plaintext API key in that bot's own secret store; the server-side client registry stores only its SHA-256 digest.
+
+When manually testing protected Gateway endpoints, load a bot key into your shell:
+
+```bash
+read -rsp "AI API key: " AI_API_KEY; echo
+```
+
 ## 8. Create the engine containers
 
 The Dispatcher controls containers with `docker start` and `docker stop`. Therefore the engine containers must exist before the Dispatcher receives traffic.
@@ -169,8 +211,8 @@ They should normally be stopped while idle.
 
 ```bash
 cd /opt/ai-services/dispatcher
-docker compose build
-docker compose up -d
+docker compose --env-file /etc/ai-services/runtime.env build
+docker compose --env-file /etc/ai-services/runtime.env up -d
 ```
 
 The Dispatcher has access to `/var/run/docker.sock` because it owns the engine lifecycle. This is a privileged trust boundary; read `SECURITY.md` before exposing anything outside the host.
@@ -192,8 +234,8 @@ Expected response:
 
 ```bash
 cd /opt/ai-services/gateway
-docker compose build
-docker compose up -d
+docker compose --env-file /etc/ai-services/runtime.env build
+docker compose --env-file /etc/ai-services/runtime.env up -d
 ```
 
 The Gateway is the only project API that is intentionally published to the host, on port `8090`.
@@ -202,7 +244,8 @@ Verify:
 
 ```bash
 curl -fsS http://localhost:8090/health
-curl -fsS http://localhost:8090/v1/models
+curl -fsS http://localhost:8090/v1/models \
+  -H "Authorization: Bearer $AI_API_KEY"
 ```
 
 ## 11. Test one engine at a time
@@ -211,6 +254,7 @@ curl -fsS http://localhost:8090/v1/models
 
 ```bash
 curl http://localhost:8090/v1/chat/completions \
+  -H "Authorization: Bearer $AI_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "model":"qwen3-8b",
@@ -231,6 +275,7 @@ Expected: `false`.
 
 ```bash
 curl http://localhost:8090/v1/embeddings \
+  -H "Authorization: Bearer $AI_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{"model":"bge-m3","input":"The sky is blue."}'
 ```
@@ -239,6 +284,7 @@ curl http://localhost:8090/v1/embeddings \
 
 ```bash
 curl http://localhost:8090/v1/rerank \
+  -H "Authorization: Bearer $AI_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "model":"bge-reranker-v2-m3",
@@ -251,6 +297,7 @@ curl http://localhost:8090/v1/rerank \
 
 ```bash
 curl http://localhost:8090/v1/audio/transcriptions \
+  -H "Authorization: Bearer $AI_API_KEY" \
   -F model=faster-whisper-large-v3 \
   -F file=@sample.wav
 ```
@@ -259,6 +306,7 @@ curl http://localhost:8090/v1/audio/transcriptions \
 
 ```bash
 curl http://localhost:8090/v1/audio/speech \
+  -H "Authorization: Bearer $AI_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{"model":"coqui-es-css10-vits","input":"Hola mundo","response_format":"wav"}' \
   --output speech.wav
@@ -268,6 +316,7 @@ curl http://localhost:8090/v1/audio/speech \
 
 ```bash
 curl http://localhost:8090/v1/documents/read \
+  -H "Authorization: Bearer $AI_API_KEY" \
   -F model=paddleocr-vl-1.6 \
   -F file=@sample.pdf
 ```

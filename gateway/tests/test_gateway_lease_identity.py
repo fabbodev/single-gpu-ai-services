@@ -6,7 +6,7 @@ from app.dispatcher_client import LeaseHandle
 from app.main import app
 
 
-client = TestClient(app)
+client = TestClient(app, headers={"Authorization": "Bearer test-bot-token-not-a-real-secret"})
 
 
 def test_chat_releases_exact_lease_handle(monkeypatch):
