@@ -13,6 +13,7 @@ def test_chat_completions_acquires_llm_forwards_request_and_releases(monkeypatch
     class FakeDispatcher:
         async def acquire(self, service):
             events.append(("acquire", service))
+            return service
 
         async def release(self, service):
             events.append(("release", service))
@@ -122,6 +123,7 @@ def test_chat_completions_rejects_unsupported_model_without_acquiring(monkeypatc
     class FakeDispatcher:
         async def acquire(self, service):
             events.append(("acquire", service))
+            return service
 
         async def release(self, service):
             events.append(("release", service))
@@ -143,6 +145,7 @@ def test_chat_completions_backend_failure_releases_llm(monkeypatch):
     class FakeDispatcher:
         async def acquire(self, service):
             events.append(("acquire", service))
+            return service
 
         async def release(self, service):
             events.append(("release", service))

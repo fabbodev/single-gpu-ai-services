@@ -64,7 +64,7 @@ La exclusividad cubre los engines gestionados; no cubre procesos GPU ajenos.
 
 | Fase | Límite inicial |
 |---|---:|
-| Espera por GPU | 90 s |
+| Espera por GPU | 30 s |
 | Arranque + readiness del servicio lógico completo | 120 s |
 | Inferencia en Gateway, duración total | 300 s |
 | Reserva ACTIVE, desde que el engine queda listo | 330 s |

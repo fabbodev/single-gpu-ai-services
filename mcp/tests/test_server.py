@@ -103,3 +103,9 @@ async def test_gateway_errors_are_not_silently_swallowed():
     gateway = make_gateway(handler)
     with pytest.raises(httpx.HTTPStatusError):
         await gateway.embed_text("hello")
+
+
+def test_default_gateway_timeout_covers_queue_startup_inference_and_cleanup():
+    import server
+
+    assert server.REQUEST_TIMEOUT_SECONDS == 600.0

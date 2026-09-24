@@ -8,7 +8,7 @@ from fastmcp import FastMCP
 
 
 GATEWAY_URL = os.getenv("GATEWAY_URL", "http://ai-gateway:8090")
-REQUEST_TIMEOUT_SECONDS = float(os.getenv("MCP_GATEWAY_TIMEOUT", "300"))
+REQUEST_TIMEOUT_SECONDS = float(os.getenv("MCP_GATEWAY_TIMEOUT", "600"))
 
 PUBLIC_STT_MODEL = "faster-whisper-large-v3"
 PUBLIC_TTS_MODEL = "coqui-es-css10-vits"

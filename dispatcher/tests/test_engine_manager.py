@@ -9,14 +9,14 @@ class FakeRunner:
         self.fail_health_for = set(fail_health_for or [])
         self.events = []
 
-    def run(self, *command):
+    def run(self, *command, timeout=None):
         self.events.append(command)
 
         if command[:3] == ("docker", "inspect", "-f"):
             container = command[-1]
             if container in self.running:
                 return "true\n"
-            raise RuntimeError("not running")
+            return "false\n"
 
         if command[:2] == ("docker", "start"):
             self.running.add(command[2])
@@ -27,7 +27,7 @@ class FakeRunner:
             return ""
 
         if command[:2] == ("curl", "-fsS"):
-            url = command[2]
+            url = command[-1]
             if url in self.fail_health_for:
                 raise RuntimeError("health failed")
             return "ok"
@@ -39,18 +39,22 @@ def test_single_component_service_starts_and_health_checks():
     runner = FakeRunner()
     manager = EngineManager(runner, health_attempts=1, health_interval=0)
 
-    manager.start("llm")
+    manager.start("llm", timeout=0.2)
 
     assert "ai-llm" in runner.running
     assert ("docker", "start", "ai-llm") in runner.events
-    assert ("curl", "-fsS", "http://ai-llm:8080/health") in runner.events
+    assert any(
+        event[:2] == ("curl", "-fsS")
+        and event[-1] == "http://ai-llm:8080/health"
+        for event in runner.events
+    )
 
 
 def test_running_component_is_not_started_twice():
     runner = FakeRunner(running={"ai-llm"})
     manager = EngineManager(runner, health_attempts=1, health_interval=0)
 
-    manager.start("llm")
+    manager.start("llm", timeout=0.2)
 
     assert ("docker", "start", "ai-llm") not in runner.events
 
@@ -59,14 +63,14 @@ def test_unknown_service_is_rejected():
     manager = EngineManager(FakeRunner(), health_attempts=1, health_interval=0)
 
     with pytest.raises(ValueError):
-        manager.start("does-not-exist")
+        manager.start("does-not-exist", timeout=0.2)
 
 
 def test_ocr_starts_vlm_before_api():
     runner = FakeRunner()
     manager = EngineManager(runner, health_attempts=1, health_interval=0)
 
-    manager.start("ocr")
+    manager.start("ocr", timeout=0.2)
 
     starts = [event for event in runner.events if event[:2] == ("docker", "start")]
     assert starts == [
@@ -79,7 +83,7 @@ def test_ocr_stops_in_reverse_order():
     runner = FakeRunner(running={"ai-ocr-vlm", "ai-ocr-api"})
     manager = EngineManager(runner, health_attempts=1, health_interval=0)
 
-    manager.stop("ocr")
+    manager.stop("ocr", timeout=0.2)
 
     stops = [event for event in runner.events if event[:2] == ("docker", "stop")]
     assert stops == [
@@ -94,7 +98,7 @@ def test_partial_ocr_start_failure_rolls_back():
     manager = EngineManager(runner, health_attempts=1, health_interval=0)
 
     with pytest.raises(RuntimeError):
-        manager.start("ocr")
+        manager.start("ocr", timeout=0.2)
 
     assert "ai-ocr-vlm" not in runner.running
     assert "ai-ocr-api" not in runner.running

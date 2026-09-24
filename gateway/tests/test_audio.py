@@ -18,7 +18,7 @@ def test_stt_acquires_and_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeResponse:
@@ -54,7 +54,7 @@ def test_stt_bad_model_does_not_acquire(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(service)
+        async def acquire(self, service): events.append(service); return service
         async def release(self, service): pass
 
     monkeypatch.setattr(main, "dispatcher", FakeDispatcher())
@@ -71,7 +71,7 @@ def test_tts_acquires_and_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeResponse:
@@ -106,7 +106,7 @@ def test_tts_rejects_missing_input_and_wrong_format(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(service)
+        async def acquire(self, service): events.append(service); return service
         async def release(self, service): pass
 
     monkeypatch.setattr(main, "dispatcher", FakeDispatcher())
@@ -124,7 +124,7 @@ def test_tts_backend_failure_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeAsyncClient:

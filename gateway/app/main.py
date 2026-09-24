@@ -1,8 +1,9 @@
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Response
+import asyncio
 import base64
 import httpx
 
-from app.dispatcher_client import DispatcherClient
+from app.dispatcher_client import DispatcherAcquireError, DispatcherClient
 
 
 app = FastAPI(title="AI Services Gateway")
@@ -30,6 +31,27 @@ PUBLIC_OCR_MODEL = "paddleocr-vl-1.6"
 
 dispatcher = DispatcherClient(DISPATCHER_URL)
 http_client = httpx.AsyncClient(timeout=300.0)
+INFERENCE_TIMEOUT_SECONDS = 300.0
+
+
+async def _acquire_lease(service: str):
+    try:
+        return await dispatcher.acquire(service)
+    except (DispatcherAcquireError, httpx.HTTPError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Dispatcher acquisition error: {exc}",
+        ) from exc
+
+
+async def _release_lease(lease):
+    try:
+        await asyncio.shield(dispatcher.release(lease))
+    except (DispatcherAcquireError, httpx.HTTPError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Dispatcher release error: {exc}",
+        ) from exc
 
 
 @app.get("/health")
@@ -61,19 +83,19 @@ async def transcribe_audio(file: UploadFile = File(...), model: str = Form(PUBLI
     data = {"model": ENGINE_STT_MODEL}
     if language:
         data["language"] = language
-    acquired = False
+    lease = await _acquire_lease("stt")
     try:
-        await dispatcher.acquire("stt")
-        acquired = True
-        async with httpx.AsyncClient(timeout=300.0) as client:
-            response = await client.post(f"{STT_URL}/v1/audio/transcriptions", files=files, data=data)
-            response.raise_for_status()
+        async with asyncio.timeout(INFERENCE_TIMEOUT_SECONDS):
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                response = await client.post(f"{STT_URL}/v1/audio/transcriptions", files=files, data=data)
+                response.raise_for_status()
         return {"text": response.json().get("text", "")}
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="STT inference timed out") from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"STT backend error: {exc}") from exc
     finally:
-        if acquired:
-            await dispatcher.release("stt")
+        await _release_lease(lease)
 
 
 @app.post("/v1/audio/speech")
@@ -87,19 +109,19 @@ async def synthesize_speech(payload: dict):
         raise HTTPException(status_code=400, detail="input is required")
     if response_format != "wav":
         raise HTTPException(status_code=400, detail=f"Unsupported response_format: {response_format}")
-    acquired = False
+    lease = await _acquire_lease("tts")
     try:
-        await dispatcher.acquire("tts")
-        acquired = True
-        async with httpx.AsyncClient(timeout=300.0) as client:
-            response = await client.post(f"{TTS_URL}/api/tts", params={"text": text})
-            response.raise_for_status()
+        async with asyncio.timeout(INFERENCE_TIMEOUT_SECONDS):
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                response = await client.post(f"{TTS_URL}/api/tts", params={"text": text})
+                response.raise_for_status()
         return Response(content=response.content, media_type="audio/wav")
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="TTS inference timed out") from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"TTS backend error: {exc}") from exc
     finally:
-        if acquired:
-            await dispatcher.release("tts")
+        await _release_lease(lease)
 
 
 @app.post("/v1/chat/completions")
@@ -121,18 +143,18 @@ async def chat_completions(payload: dict):
     backend_payload = {key: payload[key] for key in allowed_fields if key in payload}
     backend_payload["model"] = PUBLIC_LLM_MODEL
     backend_payload["stream"] = False
-    acquired = False
+    lease = await _acquire_lease("llm")
     try:
-        await dispatcher.acquire("llm")
-        acquired = True
-        response = await http_client.post(f"{LLM_URL}/v1/chat/completions", json=backend_payload)
-        response.raise_for_status()
+        async with asyncio.timeout(INFERENCE_TIMEOUT_SECONDS):
+            response = await http_client.post(f"{LLM_URL}/v1/chat/completions", json=backend_payload)
+            response.raise_for_status()
         return response.json()
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="LLM inference timed out") from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"LLM backend error: {exc}") from exc
     finally:
-        if acquired:
-            await dispatcher.release("llm")
+        await _release_lease(lease)
 
 
 @app.post("/v1/embeddings")
@@ -141,18 +163,18 @@ async def embeddings(payload: dict):
     if model != PUBLIC_EMBEDDINGS_MODEL:
         raise HTTPException(status_code=400, detail=f"Unsupported model: {model}")
     backend_payload = {"model": PUBLIC_EMBEDDINGS_MODEL, "input": payload.get("input")}
-    acquired = False
+    lease = await _acquire_lease("embeddings")
     try:
-        await dispatcher.acquire("embeddings")
-        acquired = True
-        response = await http_client.post(f"{EMBEDDINGS_URL}/v1/embeddings", json=backend_payload)
-        response.raise_for_status()
+        async with asyncio.timeout(INFERENCE_TIMEOUT_SECONDS):
+            response = await http_client.post(f"{EMBEDDINGS_URL}/v1/embeddings", json=backend_payload)
+            response.raise_for_status()
         return response.json()
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="Embeddings inference timed out") from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"Embeddings backend error: {exc}") from exc
     finally:
-        if acquired:
-            await dispatcher.release("embeddings")
+        await _release_lease(lease)
 
 
 @app.post("/v1/rerank")
@@ -161,18 +183,18 @@ async def rerank(payload: dict):
     if model != PUBLIC_RERANK_MODEL:
         raise HTTPException(status_code=400, detail=f"Unsupported model: {model}")
     backend_payload = {"query": payload.get("query"), "texts": payload.get("documents")}
-    acquired = False
+    lease = await _acquire_lease("reranker")
     try:
-        await dispatcher.acquire("reranker")
-        acquired = True
-        response = await http_client.post(f"{RERANK_URL}/rerank", json=backend_payload)
-        response.raise_for_status()
+        async with asyncio.timeout(INFERENCE_TIMEOUT_SECONDS):
+            response = await http_client.post(f"{RERANK_URL}/rerank", json=backend_payload)
+            response.raise_for_status()
         return {"model": PUBLIC_RERANK_MODEL, "results": response.json()}
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="Reranker inference timed out") from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"Reranker backend error: {exc}") from exc
     finally:
-        if acquired:
-            await dispatcher.release("reranker")
+        await _release_lease(lease)
 
 
 @app.post("/v1/documents/read")
@@ -193,18 +215,18 @@ async def read_document(file: UploadFile = File(...), model: str = Form(PUBLIC_O
         "visualize": False,
         "restructurePages": False,
     }
-    acquired = False
+    lease = await _acquire_lease("ocr")
     try:
-        await dispatcher.acquire("ocr")
-        acquired = True
-        response = await http_client.post(f"{OCR_URL}/layout-parsing", json=backend_payload)
-        response.raise_for_status()
+        async with asyncio.timeout(INFERENCE_TIMEOUT_SECONDS):
+            response = await http_client.post(f"{OCR_URL}/layout-parsing", json=backend_payload)
+            response.raise_for_status()
         body = response.json()
         pages = body.get("result", {}).get("layoutParsingResults", [])
         text_parts = [page.get("markdown", {}).get("text", "") for page in pages]
         return {"model": PUBLIC_OCR_MODEL, "text": "\n\n".join(part for part in text_parts if part)}
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="OCR inference timed out") from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"OCR backend error: {exc}") from exc
     finally:
-        if acquired:
-            await dispatcher.release("ocr")
+        await _release_lease(lease)

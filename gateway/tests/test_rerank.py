@@ -11,7 +11,7 @@ def test_rerank_acquires_forwards_and_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeResponse:
@@ -39,7 +39,7 @@ def test_rerank_bad_model_does_not_acquire(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     monkeypatch.setattr(main, "dispatcher", FakeDispatcher())
@@ -52,7 +52,7 @@ def test_rerank_backend_failure_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeHTTPClient:

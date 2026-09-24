@@ -196,12 +196,19 @@ Backend HTTP/transport failures are translated to HTTP 502. After a lease has be
 
 ## Dispatcher API
 
-The Dispatcher API is internal implementation detail and should remain on the private Docker network:
+The Dispatcher API is a private implementation detail and should remain on the internal Docker network. Protocol version 2 uses identified, idempotent leases:
 
 ```text
 GET  /health
+GET  /ready
 POST /acquire/{service}
+GET  /leases/{request_id}?epoch=<epoch>
 POST /release/{service}
+POST /cancel/{service}
 ```
 
-Clients should normally call the Gateway rather than the Dispatcher directly.
+`/ready` returns the current Dispatcher epoch, protocol version, readiness and degradation reason. Acquire requests include `request_id`, `epoch`, and a queue deadline. Release and cancel require the same `request_id` and `epoch`, preventing late commands from affecting a newer lease.
+
+A normal acquire may return `202` while the request is queued or starting. Gateway polls the lease until it becomes `active` or reaches a terminal state. Stale epochs or conflicting request identities are rejected rather than silently reused.
+
+Clients should call the Gateway rather than the Dispatcher directly. The Dispatcher API is not an authentication boundary; transport/auth hardening is handled separately from this lifecycle protocol.
