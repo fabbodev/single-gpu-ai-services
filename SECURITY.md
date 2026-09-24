@@ -37,7 +37,7 @@ trusted client / VPN / authenticated reverse proxy
               Docker socket
 ```
 
-If the Gateway is exposed outside a trusted LAN or VPN, add authentication, TLS, request limits, and an appropriate reverse proxy. The reference Gateway does not implement authentication by itself.
+The reference Gateway requires per-client Bearer authentication. If it is exposed outside a trusted LAN or VPN, additionally require TLS, edge rate limits, and an appropriate authenticated reverse proxy.
 
 ## Secrets
 

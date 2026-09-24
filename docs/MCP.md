@@ -95,7 +95,7 @@ Then configure the MCP client with:
 http://<trusted-interface-ip>:8091/mcp
 ```
 
-Authentication is not added by this reference adapter. If the endpoint leaves a trusted private network, place appropriate authentication and TLS controls in front of it.
+The reference adapter requires a per-bot Bearer token. If the endpoint leaves a trusted private network, retain that client authentication and add TLS plus appropriate edge/reverse-proxy controls.
 
 ## File tools and remote clients
 
