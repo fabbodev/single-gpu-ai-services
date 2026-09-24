@@ -3,10 +3,11 @@ services:
     image: ghcr.io/speaches-ai/speaches:latest-cuda
     container_name: ai-stt
     restart: "no"
+    stop_signal: SIGINT
     gpus: all
     environment:
       HF_HOME: /home/ubuntu/.cache/huggingface
-      STT_MODEL_TTL: "300"
+      WHISPER__TTL: "0"
     volumes:
       - /opt/ai-services/models/stt/hf-cache:/home/ubuntu/.cache/huggingface
     ports:

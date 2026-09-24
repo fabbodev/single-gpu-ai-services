@@ -3,6 +3,7 @@ services:
     image: ${TTS_IMAGE:-ai-services/coqui-tts:1.0}
     container_name: ai-tts
     restart: "no"
+    stop_signal: SIGINT
     gpus: all
     entrypoint:
       - /opt/venv/bin/tts-server
