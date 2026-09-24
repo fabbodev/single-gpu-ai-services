@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "images": {
+    "dispatcher_base": {
+      "repository": "docker.io/library/docker",
+      "source_tag": "cli",
+      "digest": "sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca",
+      "platform": "multiarch",
+      "amd64_digest": "sha256:6602978e2be3c20e530e33773b8cadcef5fe998a71a534ee24516f1176973cdf"
+    },
+    "python_base": {
+      "repository": "docker.io/library/python",
+      "source_tag": "3.12-slim",
+      "digest": "sha256:2f17fc044b579bab302c2e8054d3a686e2cb9a83de48e70534b94cd8ebbe06a9",
+      "platform": "multiarch",
+      "amd64_digest": "sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+    },
+    "llm": {
+      "repository": "ghcr.io/ggml-org/llama.cpp",
+      "source_tag": "server-cuda",
+      "digest": "sha256:014f721265464f38ccb247c1338d07d852c4bae7509a4b4734d07a2bbadc765c",
+      "platform": "multiarch",
+      "amd64_digest": "sha256:5b97c2cde8fe63951e7783a5f60b4b18b643df4cd1ab121b28400501d02805d3"
+    },
+    "stt": {
+      "repository": "ghcr.io/speaches-ai/speaches",
+      "source_tag": "latest-cuda",
+      "digest": "sha256:bd2ca473ada8cf2b4e0fd48cc4b5ba5622e42c55b6a2ddee4d03c5dfb7be9973",
+      "platform": "linux/amd64",
+      "tag_index_digest": "sha256:6ec12ebf890a17e0d4b242a8ba9e0eb1fb836e60e8a3c857aea9838d541579ac"
+    },
+    "embeddings": {
+      "repository": "ghcr.io/huggingface/text-embeddings-inference",
+      "source_tag": "86-1.9",
+      "digest": "sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e",
+      "platform": "linux/amd64",
+      "tag_index_digest": "sha256:bee0bdb887096229add91b6fdfcf95258c12eb9180e90dc86f3b4b25b86fc613"
+    },
+    "reranker": {
+      "repository": "ghcr.io/huggingface/text-embeddings-inference",
+      "source_tag": "86-1.9",
+      "digest": "sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e",
+      "platform": "linux/amd64",
+      "tag_index_digest": "sha256:bee0bdb887096229add91b6fdfcf95258c12eb9180e90dc86f3b4b25b86fc613"
+    },
+    "ocr_vlm": {
+      "repository": "ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server",
+      "source_tag": "latest-nvidia-gpu-offline",
+      "digest": "sha256:d0d32c04a2119613d25a0a4c292e165ccc107954b74580613cf59e378037f8f5",
+      "platform": "linux/amd64"
+    },
+    "ocr_api": {
+      "repository": "ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-vl",
+      "source_tag": "latest-nvidia-gpu-offline",
+      "digest": "sha256:6c735bdf9e758ffdd58ccc067db0c2d84e37e5e6a2cbd47156069d4d7ea5d709",
+      "platform": "linux/amd64"
+    },
+    "tts_base": {
+      "repository": "docker.io/pytorch/pytorch",
+      "source_tag": "2.8.0-cuda12.8-cudnn9-runtime",
+      "digest": "sha256:417bd75df6365104c283ea4c1651fb3530d9eb5a4c2fafa51943cff2a94e6385",
+      "platform": "linux/amd64",
+      "status": "recipe-ready-build-and-gpu-pending"
+    }
+  }
+}

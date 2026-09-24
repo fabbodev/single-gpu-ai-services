@@ -1,0 +1,80 @@
+{
+  "timestamp_utc": "2026-09-24T22:58:36.799228+00:00",
+  "scope": "registry-metadata-only; no image layers or model payloads downloaded",
+  "images": {
+    "dispatcher_base": {
+      "source_ref": "docker.io/library/docker@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca",
+      "amd64_digest": "sha256:6602978e2be3c20e530e33773b8cadcef5fe998a71a534ee24516f1176973cdf",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 66553904,
+      "config_digest": "sha256:2af014a97c42d6012400b628d7ee8db188e22fc03ce75385eb04e4f346f2348e"
+    },
+    "python_base": {
+      "source_ref": "docker.io/library/python@sha256:2f17fc044b579bab302c2e8054d3a686e2cb9a83de48e70534b94cd8ebbe06a9",
+      "amd64_digest": "sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 43241091,
+      "config_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4"
+    },
+    "llm": {
+      "source_ref": "ghcr.io/ggml-org/llama.cpp@sha256:014f721265464f38ccb247c1338d07d852c4bae7509a4b4734d07a2bbadc765c",
+      "amd64_digest": "sha256:5b97c2cde8fe63951e7783a5f60b4b18b643df4cd1ab121b28400501d02805d3",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 2589460945,
+      "config_digest": "sha256:a056b7636fad4210b8dad7b76f6fb829b8eaa9267c222107a54ed375fd7116b2"
+    },
+    "stt": {
+      "source_ref": "ghcr.io/speaches-ai/speaches@sha256:bd2ca473ada8cf2b4e0fd48cc4b5ba5622e42c55b6a2ddee4d03c5dfb7be9973",
+      "amd64_digest": "sha256:bd2ca473ada8cf2b4e0fd48cc4b5ba5622e42c55b6a2ddee4d03c5dfb7be9973",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 2911159510,
+      "config_digest": "sha256:236e120c7e3efa56a84e7c2bea595bf3ceb8412f4f3d9c9a7ca26ad6dccaed00"
+    },
+    "embeddings": {
+      "source_ref": "ghcr.io/huggingface/text-embeddings-inference@sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e",
+      "amd64_digest": "sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 3144645116,
+      "config_digest": "sha256:977ce71d82409fae8488761c2fce59ea8da1307cd861bd93b0cd5c04fdca4e80"
+    },
+    "reranker": {
+      "source_ref": "ghcr.io/huggingface/text-embeddings-inference@sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e",
+      "amd64_digest": "sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 3144645116,
+      "config_digest": "sha256:977ce71d82409fae8488761c2fce59ea8da1307cd861bd93b0cd5c04fdca4e80"
+    },
+    "ocr_vlm": {
+      "source_ref": "ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server@sha256:d0d32c04a2119613d25a0a4c292e165ccc107954b74580613cf59e378037f8f5",
+      "amd64_digest": "sha256:d0d32c04a2119613d25a0a4c292e165ccc107954b74580613cf59e378037f8f5",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 7336801206,
+      "config_digest": "sha256:f40e1d785c7c09c29ff1118cdf7edffec500459c3964ca05c419657d2107a364"
+    },
+    "ocr_api": {
+      "source_ref": "ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-vl@sha256:6c735bdf9e758ffdd58ccc067db0c2d84e37e5e6a2cbd47156069d4d7ea5d709",
+      "amd64_digest": "sha256:6c735bdf9e758ffdd58ccc067db0c2d84e37e5e6a2cbd47156069d4d7ea5d709",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 6343949742,
+      "config_digest": "sha256:b9cb0125379a4851d7684314a146d028a26c935fcf6a8447754d555525e76806"
+    },
+    "tts_base": {
+      "source_ref": "docker.io/pytorch/pytorch@sha256:417bd75df6365104c283ea4c1651fb3530d9eb5a4c2fafa51943cff2a94e6385",
+      "amd64_digest": "sha256:417bd75df6365104c283ea4c1651fb3530d9eb5a4c2fafa51943cff2a94e6385",
+      "platform": "linux/amd64",
+      "compressed_layer_bytes": 4288258545,
+      "config_digest": "sha256:b2078535036f785b93ef4da8138bcbba589ab3a0e66b74d6f3f05dc838b6f059"
+    }
+  },
+  "unique_compressed_layer_bytes": 26347165768,
+  "model_payload_bytes": {
+    "embeddings": 2295419991,
+    "llm": 5027783488,
+    "ocr": 2062431579,
+    "reranker": 2293242108,
+    "stt": 3090835702,
+    "tts": 108571515
+  },
+  "total_model_payload_bytes": 14878284383,
+  "warning": "Compressed registry layers and final model files exclude unpacked image overhead, build caches, temporary archives, and download caches. Measure free space on the GPU host before and after each large operation."
+}

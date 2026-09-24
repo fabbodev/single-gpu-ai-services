@@ -1,6 +1,6 @@
 services:
   llm:
-    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    image: ghcr.io/ggml-org/llama.cpp@sha256:014f721265464f38ccb247c1338d07d852c4bae7509a4b4734d07a2bbadc765c
     container_name: ai-llm
     restart: "no"
     gpus: all

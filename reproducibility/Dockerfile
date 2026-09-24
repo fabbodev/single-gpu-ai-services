@@ -5,9 +5,11 @@ WORKDIR /app
 COPY requirements.lock.txt .
 RUN pip install --no-cache-dir -r requirements.lock.txt
 
-COPY auth.py .
-COPY server.py .
+COPY models.lock.json .
+COPY provision_models.py .
+COPY verify_models.py .
 
-EXPOSE 8091
+ENV HF_HUB_DISABLE_TELEMETRY=1
+ENV HF_XET_HIGH_PERFORMANCE=1
 
-CMD ["python", "server.py"]
+ENTRYPOINT ["python", "/app/provision_models.py"]
