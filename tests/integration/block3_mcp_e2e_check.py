@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+from pathlib import Path
 
 from fastmcp import Client
 from fastmcp.client.auth.bearer import BearerAuth
@@ -11,7 +12,9 @@ TEST_TOKEN = "test-bot-token-not-a-real-secret"
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", required=True)
+    parser.add_argument("--token-file")
     args = parser.parse_args()
+    token = TEST_TOKEN if not args.token_file else Path(args.token_file).read_text().strip()
     url = f"http://{args.host}:8091/mcp"
 
     failed = False
@@ -28,7 +31,7 @@ async def main():
     print("MCP wrong token rejected")
     async with Client(
         url,
-        auth=BearerAuth(TEST_TOKEN),
+        auth=BearerAuth(token),
         timeout=30,
     ) as client:
         result = await client.call_tool(

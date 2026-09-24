@@ -1,5 +1,6 @@
 import argparse
 import json
+from pathlib import Path
 import subprocess
 import time
 import urllib.error
@@ -59,7 +60,9 @@ def wait_stopped(name, timeout=15):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", required=True)
+    parser.add_argument("--token-file")
     args = parser.parse_args()
+    token = TEST_TOKEN if not args.token_file else Path(args.token_file).read_text().strip()
     base = f"http://{args.host}:8090"
 
     code, body = request(base, "/health")
@@ -77,14 +80,14 @@ def main():
     assert code == 401, code
     print("models wrong token", code)
 
-    code, _ = request(base, "/v1/models", token=TEST_TOKEN)
+    code, _ = request(base, "/v1/models", token=token)
     assert code == 200, code
     print("models valid token", code)
 
     code, body = request(
         base,
         "/v1/chat/completions",
-        token=TEST_TOKEN,
+        token=token,
         payload={
             "model": "qwen3-8b",
             "messages": [
