@@ -52,3 +52,7 @@ Files: private operational record and sanitized evidence references.
 - [ ] Run six real services, MCP tool cycle and actual isolated OpenClaw agent.
 - [ ] Final self-review, tests, rollout receipts and private docs.
 - [ ] Push, PR, check CI, merge and verify deployed tree matches merged release.
+
+## Execution record
+
+Implementation and acceptance evidence are summarized in `../../PHASE5C_ACCEPTANCE.md`. This original task list describes the plan; the PR merge record and private release pin determine the final integration state.

@@ -82,3 +82,10 @@ reasoning or coding model on every task.
 - [GolemBot provider routing](https://github.com/0xranx/golembot/blob/main/docs/guide/provider-routing.md)
 - [OpenCode custom providers](https://opencode.ai/docs/providers/)
 - [OpenCode MCP authentication](https://opencode.ai/docs/mcp-servers/)
+
+## Acceptance and large numerical outputs
+
+See [PHASE5C_ACCEPTANCE.md](PHASE5C_ACCEPTANCE.md) for actual tested coverage.
+Some agent UIs clip large tool results, including embedding arrays. Use the raw
+REST/MCP response for numerical indexing; a model's description of a clipped
+preview is not a vector-length assertion.
