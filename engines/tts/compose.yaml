@@ -9,7 +9,8 @@ services:
     stop_signal: SIGINT
     gpus: all
     entrypoint:
-      - /opt/venv/bin/tts-server
+      - /opt/venv/bin/python
+      - /app/tts_entrypoint.py
     command:
       - --model_path
       - /root/.local/share/tts/tts_models--es--css10--vits/model_file.pth.tar

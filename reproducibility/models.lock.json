@@ -296,13 +296,20 @@
           "path": "vocabulary.json",
           "sha256": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1",
           "size": 1068114
+        },
+        {
+          "path": "README.md",
+          "size": 2052,
+          "sha256": "39e96252229f5a3d0141dc81afb65a36fd205461ac21e5b70f2cd1248ef0082c"
         }
       ],
       "local_path": "/opt/ai-services/models/stt/hf-cache",
       "repository": "Systran/faster-whisper-large-v3",
       "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478",
       "source_type": "huggingface",
-      "status": "pending-validation"
+      "status": "pending-validation",
+      "runtime_uid": 1000,
+      "runtime_gid": 1000
     },
     "tts": {
       "archive_sha256": "3b15b180b52dc0884934e81be2935a23bd7c2be58410c158c4d40e7deba1807f",

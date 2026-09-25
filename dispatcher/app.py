@@ -30,7 +30,7 @@ app = FastAPI(title="AI Services Dispatcher")
 dispatcher = GPUDispatcher(
     engine_manager=EngineManager(
         runner=SubprocessRunner(),
-        health_attempts=60,
+        health_attempts=120,
         health_interval=1,
         cleanup_timeout=60,
     ),

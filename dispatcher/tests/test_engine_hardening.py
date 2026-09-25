@@ -148,3 +148,46 @@ def test_timed_out_docker_start_is_reported_as_uncertain_lifecycle():
 
     with pytest.raises(EngineCleanupError, match="uncertain|timed out|timeout"):
         manager.start("llm", timeout=0.1)
+
+
+def test_stop_uses_full_cleanup_budget_for_slow_gpu_shutdown():
+    runner = ControlledRunner()
+    runner.running.add("ai-llm")
+    manager = EngineManager(runner, health_interval=0)
+
+    manager.stop("llm", timeout=30)
+
+    stop_timeouts = [
+        timeout
+        for command, timeout in runner.events
+        if command[:2] == ("docker", "stop")
+    ]
+    assert len(stop_timeouts) == 1
+    assert 10 < stop_timeouts[0] <= 30
+
+
+def test_start_fails_fast_when_container_exits_before_health():
+    class ExitDuringHealthRunner(ControlledRunner):
+        def run(self, *command, timeout=None):
+            if command[:2] == ("curl", "-fsS"):
+                self.events.append((command, timeout))
+                self.running.discard("ai-llm")
+                raise RuntimeError("health failed after engine exit")
+            return super().run(*command, timeout=timeout)
+
+    runner = ExitDuringHealthRunner()
+    manager = EngineManager(
+        runner,
+        health_attempts=120,
+        health_interval=0,
+    )
+
+    with pytest.raises(RuntimeError, match="stopped before becoming healthy"):
+        manager.start("llm", timeout=30)
+
+    health_calls = [
+        command
+        for command, _ in runner.events
+        if command[:2] == ("curl", "-fsS")
+    ]
+    assert len(health_calls) == 1

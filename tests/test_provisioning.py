@@ -39,7 +39,7 @@ def write_group(lock, root, name):
     if name == 'stt':
         ref = verify.stt_repo_cache_path(item, root) / 'refs/main'
         ref.parent.mkdir(parents=True, exist_ok=True)
-        ref.write_text(item['revision'] + '\n')
+        ref.write_text(item['revision'])
 
 
 @pytest.mark.parametrize('name', ['llm', 'embeddings', 'reranker', 'stt', 'tts', 'ocr'])
@@ -90,14 +90,14 @@ def test_verifier_cli_supports_one_model(tmp_path):
 
 
 def test_provisioner_help_does_not_require_hf_sdk():
-    result = subprocess.run(['/usr/bin/python3', str(ROOT / 'reproducibility/provision_models.py'),
+    result = subprocess.run([sys.executable, str(ROOT / 'reproducibility/provision_models.py'),
         '--help'], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
 
 
 def test_offline_precheck_does_not_create_model_root(tmp_path):
     dest = tmp_path / 'never-created'
-    result = subprocess.run(['/usr/bin/python3', str(ROOT / 'reproducibility/provision_models.py'),
+    result = subprocess.run([sys.executable, str(ROOT / 'reproducibility/provision_models.py'),
         '--lock', str(ROOT / 'reproducibility/models.lock.json'), '--root', str(dest),
         '--check-only', '--offline', '--model', 'llm'], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr + result.stdout
@@ -118,7 +118,7 @@ def test_verification_rejects_file_paths_outside_model_directory(tmp_path):
 
 
 def test_provisioning_requires_explicit_download_consent(tmp_path):
-    result = subprocess.run(['/usr/bin/python3', str(ROOT / 'reproducibility/provision_models.py'),
+    result = subprocess.run([sys.executable, str(ROOT / 'reproducibility/provision_models.py'),
         '--model', 'llm', '--root', str(tmp_path)], capture_output=True, text=True)
     assert result.returncode == 2
     assert '--download' in result.stderr
@@ -126,7 +126,15 @@ def test_provisioning_requires_explicit_download_consent(tmp_path):
 
 
 def test_offline_precheck_does_not_claim_an_installed_transfer_sdk(tmp_path):
-    result = subprocess.run(['/usr/bin/python3', str(ROOT / 'reproducibility/provision_models.py'),
+    result = subprocess.run([sys.executable, str(ROOT / 'reproducibility/provision_models.py'),
         '--check-only', '--offline', '--model', 'llm', '--root', str(tmp_path)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
     assert 'installed and enabled' not in result.stdout
+
+def test_stt_ref_rejects_trailing_newline(tmp_path):
+    lock = tiny_lock()
+    write_group(lock, tmp_path, 'stt')
+    ref = verify.stt_repo_cache_path(lock['models']['stt'], tmp_path) / 'refs/main'
+    ref.write_text(lock['models']['stt']['revision'] + '\n')
+    errors = verify.verify_locked_models(lock, tmp_path, selected=['stt'])
+    assert any('ref mismatch' in e for e in errors)

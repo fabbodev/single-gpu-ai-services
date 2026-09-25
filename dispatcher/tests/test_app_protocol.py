@@ -3,6 +3,9 @@ from fastapi.testclient import TestClient
 import app as dispatcher_app
 
 
+PRODUCTION_STARTUP_TIMEOUT = dispatcher_app.dispatcher.startup_timeout
+PRODUCTION_HEALTH_ATTEMPTS = dispatcher_app.dispatcher._engine_manager.health_attempts
+PRODUCTION_HEALTH_INTERVAL = dispatcher_app.dispatcher._engine_manager.health_interval
 dispatcher_app.dispatcher.close()
 
 
@@ -56,6 +59,10 @@ class FakeDispatcher:
             "state": "cancelled",
             "error": None,
         }
+
+
+def test_production_health_window_covers_startup_timeout():
+    assert PRODUCTION_HEALTH_ATTEMPTS * PRODUCTION_HEALTH_INTERVAL >= PRODUCTION_STARTUP_TIMEOUT
 
 
 def make_client():

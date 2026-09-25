@@ -49,10 +49,13 @@ class EngineManager:
             raise TimeoutError("engine lifecycle deadline exceeded")
         return remaining
 
-    def _run(self, deadline, *command):
+    def _run(self, deadline, *command, max_timeout=10.0):
+        timeout = self._remaining(deadline)
+        if max_timeout is not None:
+            timeout = min(timeout, max_timeout)
         return self.runner.run(
             *command,
-            timeout=min(self._remaining(deadline), 10.0),
+            timeout=timeout,
         )
 
     def _inspect_state(self, container, deadline):
@@ -85,7 +88,7 @@ class EngineManager:
             f"container state unknown for {container}: unexpected inspect output"
         )
 
-    def _wait_until_healthy(self, service, health_url, deadline):
+    def _wait_until_healthy(self, service, container, health_url, deadline):
         last_error = None
         for _ in range(self.health_attempts):
             try:
@@ -102,6 +105,12 @@ class EngineManager:
                 return
             except Exception as exc:
                 last_error = exc
+                state = self._inspect_state(container, deadline)
+                if state in {"stopped", "missing"}:
+                    raise RuntimeError(
+                        f"Service {service} stopped before becoming healthy: "
+                        f"{container}"
+                    ) from exc
                 remaining = self._remaining(deadline)
                 if self.health_interval:
                     time.sleep(min(self.health_interval, remaining))
@@ -121,7 +130,12 @@ class EngineManager:
                     )
                 if state == "stopped":
                     self._run(deadline, "docker", "start", container)
-                self._wait_until_healthy(service, health_url, deadline)
+                self._wait_until_healthy(
+                    service,
+                    container,
+                    health_url,
+                    deadline,
+                )
         except Exception as startup_error:
             ambiguous_start = (
                 isinstance(startup_error, CommandTimeout)
@@ -171,7 +185,13 @@ class EngineManager:
                 continue
 
             try:
-                self._run(deadline, "docker", "stop", container)
+                self._run(
+                    deadline,
+                    "docker",
+                    "stop",
+                    container,
+                    max_timeout=None,
+                )
             except Exception as exc:
                 errors.append(f"{container}: stop failed: {exc}")
                 continue

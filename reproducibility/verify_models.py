@@ -117,9 +117,9 @@ def verify_locked_models(lock, root, selected=None):
             ref = stt_repo_cache_path(item, root) / "refs" / "main"
             if not ref.is_file():
                 failures.append(f"missing STT main ref: {ref}")
-            elif ref.read_text().strip() != item["revision"]:
+            elif ref.read_text() != item["revision"]:
                 failures.append(
-                    f"STT main ref mismatch: {ref.read_text().strip()} "
+                    f"STT main ref mismatch: {ref.read_text()!r} "
                     f"!= {item['revision']}"
                 )
     return failures

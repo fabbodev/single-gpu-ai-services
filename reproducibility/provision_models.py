@@ -174,6 +174,15 @@ def provision_ocr(item, root, token):
         )
 
 
+def normalize_tree_ownership(root, uid, gid, chown=os.chown):
+    root = Path(root)
+    if not isinstance(uid, int) or not isinstance(gid, int) or uid < 0 or gid < 0:
+        raise ValueError("runtime uid/gid must be nonnegative integers")
+    paths = [root, *sorted(root.rglob("*"), key=lambda p: str(p))]
+    for path in paths:
+        chown(path, uid, gid, follow_symlinks=False)
+
+
 def provision_stt(item, root, token):
     cache_root = remap_local_path(item["local_path"], root)
     hub_cache = cache_root / "hub"
@@ -206,7 +215,7 @@ def provision_stt(item, root, token):
 
     refs = repo_cache / "refs"
     refs.mkdir(parents=True, exist_ok=True)
-    (refs / "main").write_text(item["revision"] + "\n")
+    (refs / "main").write_text(item["revision"])
 
     for entry in item["files"]:
         target = snapshot / entry["path"]
@@ -215,6 +224,17 @@ def provision_stt(item, root, token):
                 f"STT snapshot verification failed: {target}"
             )
         print("PASS verified", target)
+
+    normalize_tree_ownership(
+        cache_root,
+        item["runtime_uid"],
+        item["runtime_gid"],
+    )
+    print(
+        "PASS STT cache ownership",
+        f'{item["runtime_uid"]}:{item["runtime_gid"]}',
+    )
+
 def stream_download(url, destination):
     request = urllib.request.Request(
         url,

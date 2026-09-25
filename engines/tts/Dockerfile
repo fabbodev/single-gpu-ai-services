@@ -15,8 +15,8 @@ RUN pip install --no-cache-dir --no-deps -r build-requirements.lock.txt
 # WAV-only Gateway contract: SoundFile's Linux wheel bundles libsndfile.
 # No apt/FFmpeg tree and no isolated build environment with floating packages.
 RUN pip install --no-cache-dir -r requirements.lock.txt --no-deps --no-build-isolation --only-binary=soundfile
-COPY runtime_check.py .
+COPY runtime_check.py tts_entrypoint.py ./
 RUN pip check && python runtime_check.py && tts-server --help > /dev/null
 
 STOPSIGNAL SIGINT
-ENTRYPOINT ["/opt/venv/bin/tts-server"]
+ENTRYPOINT ["/opt/venv/bin/python", "/app/tts_entrypoint.py"]

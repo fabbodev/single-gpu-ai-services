@@ -127,7 +127,7 @@ async def mcp_embed(url, token, text):
 def tool_cycle(base, mcp_url, token, limit):
     tool = {'type': 'function', 'function': {'name': 'embed_text', 'description': 'Compute a text embedding.',
             'parameters': {'type': 'object', 'properties': {'input': {'type': 'string'}}, 'required': ['input'], 'additionalProperties': False}}}
-    messages = [{'role': 'user', 'content': '/no_think\nUse embed_text on Hola mundo. Then report the embedding dimension.'}]
+    messages = [{'role': 'user', 'content': '/no_think\nUse embed_text on Hola mundo. After the tool result, respond exactly: TOOL CYCLE OK.'}]
     initial = json.loads(post(base + ROUTES['llm'], token, {'model': MODELS['llm'], 'messages': messages,
         'tools': [tool], 'tool_choice': {'type': 'function', 'function': {'name': 'embed_text'}}, 'max_tokens': 256}))
     wait_idle(limit)
@@ -145,6 +145,9 @@ def tool_cycle(base, mcp_url, token, limit):
     resumed = json.loads(post(base + ROUTES['llm'], token, {'model': MODELS['llm'], 'messages': messages,
         'tools': [tool], 'tool_choice': 'none', 'max_tokens': 256}))
     validation = validate_response('llm', resumed)
+    final_text = resumed['choices'][0]['message']['content'].strip()
+    if 'TOOL CYCLE OK' not in final_text.upper():
+        raise ValueError('Qwen did not complete the resumed tool cycle as instructed')
     return {'steps': ['Qwen tool call', 'MCP embed_text', 'Qwen resume'],
             'embedding': validate_response('embeddings', result), 'final_response': validation}
 
