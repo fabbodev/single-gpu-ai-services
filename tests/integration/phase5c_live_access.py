@@ -33,6 +33,18 @@ def request(base, key, path='/v1/models', payload=None):
         return exc.code, None
 
 
+def denial_matches(exc, wire_status):
+    if wire_status not in (401, 403):
+        return False
+    # MCP SDK 2.2 intentionally flattens some non-2xx HTTP responses to
+    # INTERNAL_ERROR without retaining HTTP status. Require a separate wire
+    # authorization failure rather than accepting every generic MCP failure.
+    if (type(exc).__name__ == 'MCPError' and getattr(exc, 'code', None) == -32603
+            and str(exc) == 'Server returned an error response'):
+        return True
+    return bool(re.search(r'401|403|unauthoriz|invalid token|insufficient|permission|authentication', str(exc), re.I))
+
+
 async def exercise(args):
     from client_access.admin import atomic_write, registry_lock
     from client_access.registry import read_registry
@@ -65,12 +77,20 @@ async def exercise(args):
         assert not value.is_error
         assert len(value.structured_content['data'][0]['embedding']) == 1024
 
-    async def expect_mcp_denied(client):
+    async def expect_mcp_denied(client, key):
         try:
             value = await client.call_tool('embed_text', {'input': 'must be denied'}, timeout=20)
         except Exception as exc:
             # A timeout/network failure does not count as authorization success.
-            assert re.search(r'401|403|unauthoriz|invalid token|insufficient|permission|authentication', str(exc), re.I), type(exc).__name__
+            req = urllib.request.Request(args.mcp_url, headers={
+                'Authorization': 'Bearer ' + key,
+                'Accept': 'application/json, text/event-stream'})
+            try:
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    wire_status = response.status
+            except urllib.error.HTTPError as error:
+                wire_status = error.code
+            assert denial_matches(exc, wire_status), type(exc).__name__
         else:
             assert value.is_error, 'MCP unexpectedly accepted revoked/limited access'
 
@@ -90,7 +110,7 @@ async def exercise(args):
                 record('live-mcp-embedding')
                 control('disable')
                 expect(key, 401)
-                await expect_mcp_denied(client)
+                await expect_mcp_denied(client, key)
                 record('revoked-access-denied-in-established-mcp-session')
             control('enable')
             expect(key, 200)
