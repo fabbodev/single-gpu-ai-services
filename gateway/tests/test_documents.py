@@ -5,14 +5,14 @@ from fastapi.testclient import TestClient
 from app import main
 from app.main import app
 
-client = TestClient(app)
+client = TestClient(app, headers={"Authorization": "Bearer test-bot-token-not-a-real-secret"})
 
 
 def test_documents_image_acquires_forwards_and_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeResponse:
@@ -73,7 +73,7 @@ def test_documents_bad_model_and_mime_do_not_acquire(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(service)
+        async def acquire(self, service): events.append(service); return service
         async def release(self, service): pass
 
     monkeypatch.setattr(main, "dispatcher", FakeDispatcher())
@@ -95,7 +95,7 @@ def test_documents_backend_failure_releases(monkeypatch):
     events = []
 
     class FakeDispatcher:
-        async def acquire(self, service): events.append(("acquire", service))
+        async def acquire(self, service): events.append(("acquire", service)); return service
         async def release(self, service): events.append(("release", service))
 
     class FakeHTTPClient:

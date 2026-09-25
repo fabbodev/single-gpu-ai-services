@@ -25,3 +25,6 @@ models/
 # Runtime output
 *.log
 .cache/
+
+# Deployment-local secrets
+secrets/

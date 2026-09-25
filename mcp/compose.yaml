@@ -1,0 +1,30 @@
+services:
+  mcp:
+    build: .
+    container_name: ai-mcp
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 256
+    environment:
+      GATEWAY_URL: http://ai-gateway:8090
+      MCP_GATEWAY_TIMEOUT: "600"
+      MCP_MAX_FILE_BYTES: "${MCP_MAX_FILE_BYTES:-67108864}"
+      AI_CLIENT_TOKENS_FILE: /run/secrets/client-tokens.json
+    volumes:
+      - "${AI_SECRETS_DIR:-/etc/ai-services/secrets}/client-tokens.json:/run/secrets/client-tokens.json:ro"
+    ports:
+      - "${MCP_BIND_ADDRESS:-127.0.0.1}:8091:8091"
+    networks:
+      - ai-services-internal
+
+networks:
+  ai-services-internal:
+    external: true

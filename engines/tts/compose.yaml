@@ -1,11 +1,16 @@
 services:
   tts:
-    image: ${TTS_IMAGE:-ai-services/coqui-tts:1.0}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${TTS_IMAGE:-ai-services/coqui-tts:0.27.5-cu128}
     container_name: ai-tts
     restart: "no"
+    stop_signal: SIGINT
     gpus: all
     entrypoint:
-      - /opt/venv/bin/tts-server
+      - /opt/venv/bin/python
+      - /app/tts_entrypoint.py
     command:
       - --model_path
       - /root/.local/share/tts/tts_models--es--css10--vits/model_file.pth.tar

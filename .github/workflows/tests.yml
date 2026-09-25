@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'publish/**'
+      - 'feature/**'
   pull_request:
 
 jobs:
@@ -36,6 +37,20 @@ jobs:
       - run: pytest -q
       - run: docker build -t single-gpu-ai-services-dispatcher:test .
 
+  mcp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+      - run: docker build -t single-gpu-ai-services-mcp:test .
+
   compose:
     runs-on: ubuntu-latest
     steps:
@@ -44,6 +59,7 @@ jobs:
         run: |
           docker compose -f gateway/compose.yaml config >/dev/null
           docker compose -f dispatcher/compose.yaml config >/dev/null
+          docker compose -f mcp/compose.yaml config >/dev/null
           docker compose -f engines/llm/compose.yaml config >/dev/null
           docker compose -f engines/stt/compose.yaml config >/dev/null
           docker compose -f engines/tts/compose.yaml config >/dev/null

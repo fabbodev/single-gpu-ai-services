@@ -3,3 +3,10 @@ __pycache__/
 .pytest_cache/
 tests/
 .venv/
+
+.env
+.env.*
+*.pem
+*.key
+*.crt
+secrets/

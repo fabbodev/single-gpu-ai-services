@@ -1,6 +1,6 @@
 services:
   embeddings:
-    image: ghcr.io/huggingface/text-embeddings-inference:86-1.9
+    image: ghcr.io/huggingface/text-embeddings-inference@sha256:1911e69cf3d6a82c84e35412a6d2a0e51afdfe8c1405d0e5912aab533fbe317e
     container_name: ai-embeddings
     restart: "no"
     gpus: all

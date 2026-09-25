@@ -1,0 +1,348 @@
+{
+  "models": {
+    "embeddings": {
+      "files": [
+        {
+          "path": "1_Pooling/config.json",
+          "sha256": "e54c164a07274f2eb45bb724f54a79d1efcc90c41573887cd9a29aeee0597352",
+          "size": 191
+        },
+        {
+          "path": "colbert_linear.pt",
+          "sha256": "19bfbae397c2b7524158c919d0e9b19393c5639d098f0a66932c91ed8f5f9abb",
+          "size": 2100674
+        },
+        {
+          "path": "config.json",
+          "sha256": "26159e7ad065073448460117eb24b7a4572f6f4e78eadff65dc0a11c052449fa",
+          "size": 687
+        },
+        {
+          "path": "config_sentence_transformers.json",
+          "sha256": "1eef72430e7194a1e59680e635aed81ffa083f05668dbc5bb1c56c04c0999c38",
+          "size": 123
+        },
+        {
+          "path": "modules.json",
+          "sha256": "84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf",
+          "size": 349
+        },
+        {
+          "path": "pytorch_model.bin",
+          "sha256": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+          "size": 2271145830
+        },
+        {
+          "path": "sentence_bert_config.json",
+          "sha256": "eb9b44b13c0f52a3b3685c3b1cbdea1ba8b04bea123b98f61610048940776eb1",
+          "size": 54
+        },
+        {
+          "path": "sentencepiece.bpe.model",
+          "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+          "size": 5069051
+        },
+        {
+          "path": "sparse_linear.pt",
+          "sha256": "45c93804d2142b8f6d7ec6914ae23a1eee9c6a1d27d83d908a20d2afb3595ad9",
+          "size": 3516
+        },
+        {
+          "path": "special_tokens_map.json",
+          "sha256": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+          "size": 964
+        },
+        {
+          "path": "tokenizer.json",
+          "sha256": "21106b6d7dab2952c1d496fb21d5dc9db75c28ed361a05f5020bbba27810dd08",
+          "size": 17098108
+        },
+        {
+          "path": "tokenizer_config.json",
+          "sha256": "a62b2b6784f990259fddef5f16388693a8043be4f69179e6a5257eeb3f9abac4",
+          "size": 444
+        }
+      ],
+      "local_path": "/opt/ai-services/models/embeddings/bge-m3",
+      "repository": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "source_type": "huggingface",
+      "status": "pending-validation"
+    },
+    "llm": {
+      "files": [
+        {
+          "path": "Qwen3-8B-Q4_K_M.gguf",
+          "sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785",
+          "size": 5027783488
+        }
+      ],
+      "local_path": "/opt/ai-services/models/llm/Qwen3-8B-Q4_K_M.gguf",
+      "repository": "Qwen/Qwen3-8B-GGUF",
+      "revision": "7c41481f57cb95916b40956ab2f0b139b296d974",
+      "source_type": "huggingface",
+      "status": "pending-validation"
+    },
+    "ocr": {
+      "files": [
+        {
+          "local_subdir": "PP-DocLayoutV3",
+          "path": "inference.json",
+          "repository": "PaddlePaddle/PP-DocLayoutV3",
+          "sha256": "2b68367c5b312a03de5a6e1642c597c8f95165a7e40cd59c6700cf4a5042f4fd",
+          "size": 1196890
+        },
+        {
+          "local_subdir": "PP-DocLayoutV3",
+          "path": "inference.pdiparams",
+          "repository": "PaddlePaddle/PP-DocLayoutV3",
+          "sha256": "70bd316b0582769ec968829fd1feb1a6a58b7c941b938327e551b6b12b45c137",
+          "size": 130806572
+        },
+        {
+          "local_subdir": "PP-DocLayoutV3",
+          "path": "inference.yml",
+          "repository": "PaddlePaddle/PP-DocLayoutV3",
+          "sha256": "506fcfac13b3b546ae40d7886b44126420f392adb694e3f8bb6a6286a1f90fdc",
+          "size": 1482
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "added_tokens.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "f59f889088e0fe21c523e7cf121bb6dca3b0bb148cb7159fbb4572c74dfc5644",
+          "size": 25381
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "chat_template.jinja",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "2f27812dab7f333e471884e0c803d807f11953d5453140dfb1aaba234f872bc8",
+          "size": 1474
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "config.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "ce7f4565f8b1db78532ad5d1b9ebe55c2139d49bd4cb04778b580a08a598f171",
+          "size": 2059
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "configuration_paddleocr_vl.py",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "753dd93654c3a9c8c85a3eaee1e3092dd12591b0f2dce0305e1abfb7a41ff160",
+          "size": 8104
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "generation_config.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "a6701d78ab3b4d972307cdec3b69d4c13f46e0d5140514f50ab7d84259324b94",
+          "size": 133
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "image_processing_paddleocr_vl.py",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "a4fa521b9cb16e207f94b7f2d16427771776dfc634420d319fc4916ee58049ec",
+          "size": 25032
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "inference.yml",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "1587aece2d6442366efce34161d5f7d5f67f09ebfbf043168e5fade892c2780e",
+          "size": 43
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "model.safetensors",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "85a479d506a11e724e7285d395c551be69f41dbc16b6342d3cacfb189aed71db",
+          "size": 1917255968
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "modeling_paddleocr_vl.py",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "c5013dff57ca8b87dc1de64d0fd839a44313de09d230a4fb2d08289d2cad5111",
+          "size": 103889
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "preprocessor_config.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "111872ab1e8bb7fd040ac5087bfced7ab8f011f02139b088cba294964c3b1d0e",
+          "size": 641
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "processing_paddleocr_vl.py",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "e29cb1e5f275f2bd3ce051bd5c9983a33894e693b2823a0e13d4c07c8c4f9e13",
+          "size": 12253
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "processor_config.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "1568858960a9760c54431dae693a6152e601ff55cdf6d2eab97a4a99958faea0",
+          "size": 137
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "special_tokens_map.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "d3a125c03103deb2acaf7730791bdbbf196f620e5a2213b664511ff9b4b25bab",
+          "size": 1151
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "tokenizer.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "c8a215a59183d0d0781adc33bacd3ce6162716f7fd568fb30234a74d69803a7d",
+          "size": 11189060
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "tokenizer.model",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "34ef7db83df785924fb83d7b887b6e822a031c56e15cff40aaf9b982988180df",
+          "size": 1614363
+        },
+        {
+          "local_subdir": "PaddleOCR-VL-1.6",
+          "path": "tokenizer_config.json",
+          "repository": "PaddlePaddle/PaddleOCR-VL-1.6",
+          "sha256": "1f979337347cc0cb72a6282d8a23ed183539aa81a87a906f022aee2bab83c7c5",
+          "size": 186947
+        }
+      ],
+      "local_path": "/opt/ai-services/models/ocr/paddle-data/official_models/",
+      "repositories": [
+        "PaddlePaddle/PaddleOCR-VL-1.6",
+        "PaddlePaddle/PP-DocLayoutV3"
+      ],
+      "revisions": {
+        "PaddlePaddle/PP-DocLayoutV3": "7b48a7566925fa464281f930c58eee04fe2c862a",
+        "PaddlePaddle/PaddleOCR-VL-1.6": "c5630abae1d940eafe0697512a0325494b02ab42"
+      },
+      "source_type": "huggingface",
+      "status": "pending-validation"
+    },
+    "reranker": {
+      "files": [
+        {
+          "path": "config.json",
+          "sha256": "13dcd6c31d9fec9d1d8e158702072f62d7fa7d312a64b9fe057bec9a08cfe41a",
+          "size": 795
+        },
+        {
+          "path": "model.safetensors",
+          "sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+          "size": 2271071852
+        },
+        {
+          "path": "sentencepiece.bpe.model",
+          "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+          "size": 5069051
+        },
+        {
+          "path": "special_tokens_map.json",
+          "sha256": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+          "size": 964
+        },
+        {
+          "path": "tokenizer.json",
+          "sha256": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
+          "size": 17098273
+        },
+        {
+          "path": "tokenizer_config.json",
+          "sha256": "7e4c1cc848840aeccdd763458c18dd525eb0f795c992e00ebe9c28554e7db2d4",
+          "size": 1173
+        }
+      ],
+      "local_path": "/opt/ai-services/models/reranker/bge-reranker-v2-m3",
+      "repository": "BAAI/bge-reranker-v2-m3",
+      "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "source_type": "huggingface",
+      "status": "pending-validation"
+    },
+    "stt": {
+      "files": [
+        {
+          "path": "config.json",
+          "sha256": "a9306624f5ec14270a014b647e5c316b6e03a662c369758d1b90697a7b0655b9",
+          "size": 2394
+        },
+        {
+          "path": "model.bin",
+          "sha256": "69f74147e3334731bc3a76048724833325d2ec74642fb52620eda87352e3d4f1",
+          "size": 3087284237
+        },
+        {
+          "path": "preprocessor_config.json",
+          "sha256": "7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711",
+          "size": 340
+        },
+        {
+          "path": "tokenizer.json",
+          "sha256": "6d8cbd7cd0d8d5815e478dac67b85a26bbe77c1f5e0c6d76d1ce2abc0e5f21ca",
+          "size": 2480617
+        },
+        {
+          "path": "vocabulary.json",
+          "sha256": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1",
+          "size": 1068114
+        },
+        {
+          "path": "README.md",
+          "size": 2052,
+          "sha256": "39e96252229f5a3d0141dc81afb65a36fd205461ac21e5b70f2cd1248ef0082c"
+        }
+      ],
+      "local_path": "/opt/ai-services/models/stt/hf-cache",
+      "repository": "Systran/faster-whisper-large-v3",
+      "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478",
+      "source_type": "huggingface",
+      "status": "pending-validation",
+      "runtime_uid": 1000,
+      "runtime_gid": 1000
+    },
+    "tts": {
+      "archive_sha256": "3b15b180b52dc0884934e81be2935a23bd7c2be58410c158c4d40e7deba1807f",
+      "archive_size": 100893027,
+      "catalog": "coqui-tts==0.27.5",
+      "files": [
+        {
+          "path": "config.json",
+          "sha256": "a90edf31bab2d572bf24077bed047eeab99291ab4cb4ca9202acded8cf67c61d",
+          "size": 7885
+        },
+        {
+          "path": "language_ids.json",
+          "sha256": "6559bd612eb793fe99366ca28721a6f9360448baf396043a0306e41f2e79d200",
+          "size": 15
+        },
+        {
+          "path": "model_file.pth.tar",
+          "sha256": "24d611da2e1dfc5f754578d2f2cdf993aa585a4cf5876121118f3ecf206e8d00",
+          "size": 108563599
+        },
+        {
+          "path": "speaker_ids.json",
+          "sha256": "7f5e31dbdbd1141318bf3d321284f17ecf386908eab58ce449a7e0591d6e5453",
+          "size": 16
+        }
+      ],
+      "local_path": "/opt/ai-services/models/tts/tts_models--es--css10--vits/",
+      "model_name": "tts_models/es/css10/vits",
+      "source_type": "coqui-model-manager",
+      "source_url": "https://github.com/coqui-ai/TTS/releases/download/v0.8.0_models/tts_models--es--css10--vits.zip",
+      "status": "pending-validation"
+    }
+  },
+  "version": 1
+}

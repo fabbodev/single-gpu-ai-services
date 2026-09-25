@@ -3,8 +3,27 @@ services:
     build: .
     container_name: ai-gateway
     restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 256
+    environment:
+      AI_CLIENT_TOKENS_FILE: /run/secrets/client-tokens.json
+      AI_DISPATCHER_TOKEN_FILE: /run/secrets/dispatcher-token
+      AI_MAX_INFLIGHT_REQUESTS: "${AI_MAX_INFLIGHT_REQUESTS:-8}"
+      AI_MAX_OCR_UPLOAD_BYTES: "${AI_MAX_OCR_UPLOAD_BYTES:-33554432}"
+      AI_MAX_STT_UPLOAD_BYTES: "${AI_MAX_STT_UPLOAD_BYTES:-134217728}"
+    volumes:
+      - "${AI_SECRETS_DIR:-/etc/ai-services/secrets}/client-tokens.json:/run/secrets/client-tokens.json:ro"
+      - "${AI_SECRETS_DIR:-/etc/ai-services/secrets}/dispatcher-token:/run/secrets/dispatcher-token:ro"
     ports:
-      - "8090:8090"
+      - "${GATEWAY_BIND_ADDRESS:-127.0.0.1}:8090:8090"
     networks:
       - ai-services-internal
 
