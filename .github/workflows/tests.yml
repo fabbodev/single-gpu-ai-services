@@ -21,7 +21,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: pytest -q
-      - run: docker build -t single-gpu-ai-services-gateway:test .
+      - run: docker build -f Dockerfile -t single-gpu-ai-services-gateway:test ..
 
   dispatcher:
     runs-on: ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: pytest -q
-      - run: docker build -t single-gpu-ai-services-mcp:test .
+      - run: docker build -f Dockerfile -t single-gpu-ai-services-mcp:test ..
 
   compose:
     runs-on: ubuntu-latest
@@ -66,3 +66,13 @@ jobs:
           docker compose -f engines/embeddings/compose.yaml config >/dev/null
           docker compose -f engines/reranker/compose.yaml config >/dev/null
           docker compose -f engines/ocr/compose.yaml config >/dev/null
+
+  client-access:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pytest==9.1.1 PyYAML==6.0.3
+      - run: python -m pytest -q tests

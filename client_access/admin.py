@@ -71,7 +71,9 @@ def write_token(path, token, registry):
     path = Path(path)
     if not path.is_absolute():
         raise ValueError('token output requires an absolute path')
-    if path == registry.parent or registry.parent in path.parents:
+    normalized = path.resolve(strict=False)
+    registry_dir = registry.parent.resolve()
+    if normalized == registry_dir or registry_dir in normalized.parents:
         raise ValueError('plaintext keys must stay outside the mounted registry directory')
     private_directory(path.parent, create=True)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o400)

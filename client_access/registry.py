@@ -161,6 +161,9 @@ class TokenStore:
                 self._stamp = None
                 raise RegistryUnavailable('client registry unavailable') from None
 
+    def check_ready(self):
+        self._refresh()
+
     def authenticate(self, authorization, *, required_scope=None):
         clients = self._refresh()
         if not isinstance(authorization, str) or len(authorization) > 4096:

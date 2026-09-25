@@ -1,6 +1,8 @@
 services:
   mcp:
-    build: .
+    build:
+      context: ..
+      dockerfile: mcp/Dockerfile
     container_name: ai-mcp
     restart: unless-stopped
     init: true
@@ -17,9 +19,14 @@ services:
       GATEWAY_URL: http://ai-gateway:8090
       MCP_GATEWAY_TIMEOUT: "600"
       MCP_MAX_FILE_BYTES: "${MCP_MAX_FILE_BYTES:-67108864}"
-      AI_CLIENT_TOKENS_FILE: /run/secrets/client-tokens.json
+      AI_CLIENT_TOKENS_FILE: /run/ai-clients/client-tokens.json
     volumes:
-      - "${AI_SECRETS_DIR:-/etc/ai-services/secrets}/client-tokens.json:/run/secrets/client-tokens.json:ro"
+      - type: bind
+        source: "${AI_CLIENT_REGISTRY_DIR:-/etc/ai-services/clients}"
+        target: /run/ai-clients
+        read_only: true
+        bind:
+          create_host_path: false
     ports:
       - "${MCP_BIND_ADDRESS:-127.0.0.1}:8091:8091"
     networks:

@@ -130,3 +130,11 @@ def test_registry_symlink_cannot_be_administered(reg):
     original = reg.read_bytes(); target = reg.parent / "elsewhere.json"; target.write_bytes(original); reg.unlink(); reg.symlink_to(target)
     command(reg,"create","bad","--scopes","gateway,llm","--token-file",token_path(reg),ok=False)
     assert target.read_bytes() == original
+
+
+def test_dotdot_cannot_place_plaintext_inside_registry_directory(reg):
+    outside = reg.parent.parent / 'other'; outside.mkdir(mode=0o700)
+    output = outside / '..' / 'clients' / 'leaked-token'
+    before = reg.read_bytes()
+    command(reg,'create','bot','--scopes','gateway,llm','--token-file',output,ok=False)
+    assert not (reg.parent/'leaked-token').exists() and reg.read_bytes()==before
