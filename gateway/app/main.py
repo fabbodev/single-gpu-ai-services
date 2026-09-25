@@ -6,7 +6,8 @@ import logging
 import os
 import httpx
 
-from app.auth import ClientTokenStore
+from app.auth import ClientTokenStore, RegistryUnavailable
+from app.chat_stream import buffered_sse
 from app.dispatcher_client import DispatcherAcquireError, DispatcherClient
 from app.limits import RequestCapacityLimiter
 
@@ -15,7 +16,7 @@ app = FastAPI(title="AI Services Gateway")
 
 CLIENT_TOKENS_FILE = os.getenv(
     "AI_CLIENT_TOKENS_FILE",
-    "/run/secrets/client-tokens.json",
+    "/run/ai-clients/client-tokens.json",
 )
 client_tokens = ClientTokenStore.from_file(CLIENT_TOKENS_FILE)
 auth_logger = logging.getLogger("ai.gateway.auth")
@@ -63,10 +64,10 @@ async def authenticate_client(request: Request, call_next):
     if request.url.path in {"/health", "/ready"}:
         return await call_next(request)
 
-    identity = client_tokens.authenticate(
-        request.headers.get("authorization"),
-        required_scope="gateway",
-    )
+    try:
+        identity = client_tokens.authenticate(request.headers.get("authorization"))
+    except RegistryUnavailable:
+        return JSONResponse({"detail": "client registry unavailable"}, status_code=503)
     if identity is None:
         return JSONResponse(
             {"detail": "invalid or missing bearer token"},
@@ -74,7 +75,20 @@ async def authenticate_client(request: Request, call_next):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    capability = {
+        "/v1/chat/completions": "llm",
+        "/v1/embeddings": "embeddings",
+        "/v1/rerank": "reranker",
+        "/v1/documents/read": "ocr",
+        "/v1/audio/transcriptions": "stt",
+        "/v1/audio/speech": "tts",
+    }.get(request.url.path.rstrip("/"))
+    required = {"gateway"} | ({capability} if capability else set())
+    if not required.issubset(identity.scopes):
+        return JSONResponse({"detail": "insufficient scope", "required_scopes": sorted(required)}, status_code=403)
+
     request.state.client_id = identity.client_id
+    request.state.client_scopes = identity.scopes
     auth_logger.info(
         "client_id=%s method=%s path=%s",
         identity.client_id,
@@ -148,6 +162,10 @@ def health():
 @app.get("/ready")
 async def ready():
     try:
+        client_tokens.check_ready()
+    except RegistryUnavailable:
+        return JSONResponse({"ready": False, "reason": "client registry unavailable"}, status_code=503)
+    try:
         body = await dispatcher.ready()
     except (DispatcherAcquireError, httpx.HTTPError) as exc:
         return JSONResponse(
@@ -159,18 +177,12 @@ async def ready():
 
 
 @app.get("/v1/models")
-def list_models():
-    return {
-        "object": "list",
-        "data": [
-            {"id": PUBLIC_LLM_MODEL, "object": "model"},
-            {"id": PUBLIC_STT_MODEL, "object": "model"},
-            {"id": PUBLIC_TTS_MODEL, "object": "model"},
-            {"id": PUBLIC_EMBEDDINGS_MODEL, "object": "model"},
-            {"id": PUBLIC_RERANK_MODEL, "object": "model"},
-            {"id": PUBLIC_OCR_MODEL, "object": "model"},
-        ],
-    }
+def list_models(request: Request):
+    models = [("llm", PUBLIC_LLM_MODEL), ("stt", PUBLIC_STT_MODEL),
+              ("tts", PUBLIC_TTS_MODEL), ("embeddings", PUBLIC_EMBEDDINGS_MODEL),
+              ("reranker", PUBLIC_RERANK_MODEL), ("ocr", PUBLIC_OCR_MODEL)]
+    return {"object": "list", "data": [{"id": model, "object": "model"}
+            for capability, model in models if capability in request.state.client_scopes]}
 
 
 @app.post("/v1/audio/transcriptions")
@@ -232,6 +244,20 @@ async def synthesize_speech(payload: dict):
 
 @app.post("/v1/chat/completions")
 async def chat_completions(payload: dict):
+    stream = payload.get("stream", False)
+    stream_options = payload.get("stream_options", {})
+    if stream_options is None:
+        stream_options = {}
+    if type(stream) is not bool or not isinstance(stream_options, dict):
+        raise HTTPException(status_code=400, detail="invalid stream or stream_options")
+    if type(stream_options.get("include_usage", False)) is not bool:
+        raise HTTPException(status_code=400, detail="include_usage must be boolean")
+    if payload.get("n", 1) != 1:
+        raise HTTPException(status_code=400, detail="only n=1 is supported")
+    if "max_completion_tokens" in payload:
+        if "max_tokens" in payload and payload["max_tokens"] != payload["max_completion_tokens"]:
+            raise HTTPException(status_code=400, detail="conflicting output token limits")
+        payload = dict(payload, max_tokens=payload["max_completion_tokens"])
     model = payload.get("model", PUBLIC_LLM_MODEL)
     if model != PUBLIC_LLM_MODEL:
         raise HTTPException(status_code=400, detail=f"Unsupported model: {model}")
@@ -260,6 +286,11 @@ async def chat_completions(payload: dict):
         body = _backend_json(response, "LLM")
         if not isinstance(body, dict) or not isinstance(body.get("choices"), list):
             raise HTTPException(status_code=502, detail="LLM backend response has invalid schema")
+        if stream:
+            try:
+                return buffered_sse(body, include_usage=stream_options.get("include_usage", False))
+            except (ValueError, TypeError, AttributeError) as exc:
+                raise HTTPException(status_code=502, detail="LLM backend response cannot be encoded as SSE") from exc
         return body
     except TimeoutError as exc:
         raise HTTPException(status_code=504, detail="LLM inference timed out") from exc

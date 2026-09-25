@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_access_token
 
 from auth import HashedTokenVerifier
+from client_access.registry import RegistryUnavailable
 
 
 GATEWAY_URL = os.getenv("GATEWAY_URL", "http://ai-gateway:8090")
@@ -16,7 +17,7 @@ REQUEST_TIMEOUT_SECONDS = float(os.getenv("MCP_GATEWAY_TIMEOUT", "600"))
 MAX_FILE_BYTES = int(os.getenv("MCP_MAX_FILE_BYTES", str(64 * 1024 * 1024)))
 CLIENT_TOKENS_FILE = os.getenv(
     "AI_CLIENT_TOKENS_FILE",
-    "/run/secrets/client-tokens.json",
+    "/run/ai-clients/client-tokens.json",
 )
 auth_logger = logging.getLogger("ai.mcp.auth")
 auth_logger.setLevel(logging.INFO)
@@ -153,7 +154,7 @@ class GatewayClient:
 gateway_client = GatewayClient()
 token_verifier = HashedTokenVerifier.from_file(
     CLIENT_TOKENS_FILE,
-    required_scopes=["mcp"],
+    required_scopes=["mcp", "gateway"],
 )
 mcp = FastMCP(
     "single-gpu-ai-services",
@@ -161,10 +162,18 @@ mcp = FastMCP(
 )
 
 
-def current_client():
+def current_client(capability):
     access = get_access_token()
     if access is None:
-        raise RuntimeError("authenticated MCP access token required")
+        raise PermissionError("authenticated MCP access token required")
+    # Recheck every tool invocation, not merely session establishment; framework
+    # auth caches must not prolong a revoked token or outdated capability grant.
+    try:
+        identity = token_verifier.store.authenticate("Bearer " + access.token)
+    except RegistryUnavailable:
+        raise PermissionError("client registry unavailable") from None
+    if identity is None or not {"mcp", "gateway", capability}.issubset(identity.scopes):
+        raise PermissionError("invalid token or insufficient capability scope")
     return access
 
 
@@ -175,7 +184,7 @@ async def read_document(filename: str, content_base64: str, content_type: str) -
     The caller must provide the file bytes as base64 because the MCP server may
     run on a different machine from the agent and cannot dereference a client-local path.
     """
-    access = current_client()
+    access = current_client("ocr")
     auth_logger.info("client_id=%s tool=read_document", access.client_id)
     return await gateway_client.read_document(
         filename,
@@ -193,7 +202,7 @@ async def transcribe_audio(
     language: str | None = None,
 ) -> dict[str, Any]:
     """Transcribe audio with the GPU speech-to-text service."""
-    access = current_client()
+    access = current_client("stt")
     auth_logger.info("client_id=%s tool=transcribe_audio", access.client_id)
     return await gateway_client.transcribe_audio(
         filename,
@@ -207,7 +216,7 @@ async def transcribe_audio(
 @mcp.tool
 async def generate_speech(text: str) -> dict[str, str]:
     """Generate a WAV speech file and return it as base64."""
-    access = current_client()
+    access = current_client("tts")
     auth_logger.info("client_id=%s tool=generate_speech", access.client_id)
     return await gateway_client.generate_speech(
         text,
@@ -218,7 +227,7 @@ async def generate_speech(text: str) -> dict[str, str]:
 @mcp.tool
 async def embed_text(input: str | list[str]) -> dict[str, Any]:
     """Create embeddings for one string or a list of strings."""
-    access = current_client()
+    access = current_client("embeddings")
     auth_logger.info("client_id=%s tool=embed_text", access.client_id)
     return await gateway_client.embed_text(
         input,
@@ -229,7 +238,7 @@ async def embed_text(input: str | list[str]) -> dict[str, Any]:
 @mcp.tool
 async def rerank_documents(query: str, documents: list[str]) -> dict[str, Any]:
     """Rerank candidate documents by relevance to a query."""
-    access = current_client()
+    access = current_client("reranker")
     auth_logger.info("client_id=%s tool=rerank_documents", access.client_id)
     return await gateway_client.rerank_documents(
         query,

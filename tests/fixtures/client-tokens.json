@@ -1,12 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "clients": [
     {
       "client_id": "test-bot",
       "token_sha256": "067c2784e0896251db66d29cc10ac85226d10d3d67faa50e91defa7ae8416423",
       "scopes": [
         "gateway",
-        "mcp"
+        "mcp",
+        "llm",
+        "embeddings",
+        "reranker",
+        "ocr",
+        "stt",
+        "tts"
       ],
       "enabled": true
     }

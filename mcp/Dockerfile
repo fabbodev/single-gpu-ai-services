@@ -2,11 +2,11 @@ FROM python:3.12-slim@sha256:2f17fc044b579bab302c2e8054d3a686e2cb9a83de48e70534b
 
 WORKDIR /app
 
-COPY requirements.lock.txt .
+COPY mcp/requirements.lock.txt .
 RUN pip install --no-cache-dir -r requirements.lock.txt
 
-COPY auth.py .
-COPY server.py .
+COPY mcp/auth.py mcp/server.py ./
+COPY client_access ./client_access
 
 EXPOSE 8091
 

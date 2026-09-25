@@ -55,6 +55,14 @@ POST /v1/documents/read
 
 The Gateway is intentionally similar to familiar OpenAI-style HTTP surfaces where practical, but it is not intended to be a complete OpenAI API clone.
 
+## Standard clients and administration
+
+See [CLIENTS.md](docs/CLIENTS.md) for REST/MCP contracts and OpenClaw, Hermes and
+GolemBot/OpenCode examples. [AUTH.md](docs/AUTH.md) covers the `ai-client` CLI,
+per-capability permissions and no-restart credential updates. Version 1 registries
+require explicit migration to the dedicated version 2 directory. Chat streaming
+is buffered SSE, not real-time token streaming.
+
 ## GPU lifecycle
 
 For a normal request:

@@ -1,0 +1,58 @@
+{
+  "models": {
+    "mode": "replace",
+    "providers": {
+      "ai-services": {
+        "baseUrl": "http://ai-services.example.internal:8090/v1",
+        "api": "openai-completions",
+        "apiKey": "${AI_SERVICES_API_KEY}",
+        "timeoutSeconds": 600,
+        "models": [
+          {
+            "id": "qwen3-8b",
+            "name": "Qwen3 8B local",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 16384,
+            "maxTokens": 2048,
+            "compat": {
+              "supportsStore": false,
+              "supportsDeveloperRole": false,
+              "supportsReasoningEffort": false,
+              "supportsTools": true,
+              "maxTokensField": "max_tokens"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ai-services/qwen3-8b",
+        "fallbacks": []
+      },
+      "contextTokens": 16384,
+      "thinkingDefault": "off",
+      "timeoutSeconds": 600
+    }
+  },
+  "mcp": {
+    "servers": {
+      "ai-services": {
+        "enabled": true,
+        "transport": "streamable-http",
+        "url": "http://ai-services.example.internal:8091/mcp",
+        "headers": {
+          "Authorization": "Bearer ${AI_SERVICES_API_KEY}"
+        },
+        "connectionTimeoutMs": 30000,
+        "requestTimeoutMs": 600000,
+        "supportsParallelToolCalls": false
+      }
+    }
+  }
+}

@@ -104,72 +104,38 @@ Model weights are deliberately not included in this repository. Obtain them from
 
 See `docs/MODELS.md` for the expected model families.
 
-## 7. Prepare the TTS image
+## 7. Build the pinned TTS runtime
 
-The verified private deployment used a locally built image named:
+From the repository root, run `docker compose -f engines/tts/compose.yaml build`.
+The current recipe and lockfiles produce `ai-services/coqui-tts:0.27.5-cu128`.
+Do not substitute the historical 1.0 image. Provision and verify the locked model
+payloads as described in `reproducibility/README.md` before creating engines.
 
-```text
-ai-services/coqui-tts:1.0
-```
+## 7a. Create runtime authentication
 
-The public compose file keeps that image name by default rather than pretending an unverified replacement is identical.
+Follow [AUTH.md](AUTH.md) as the host registry owner. New installations use the
+local `scripts/ai-client init` and `create` commands. Existing v1 installations
+must explicitly migrate the old registry before recreating Gateway and MCP.
 
-Before enabling TTS, build or provide a compatible Coqui TTS GPU image that contains a `tts-server` executable at `/opt/venv/bin/tts-server`, then tag it:
+The new registry is `/etc/ai-services/clients/client-tokens.json` (v2). Its dedicated
+parent directory is mounted read-only into Gateway/MCP at `/run/ai-clients`.
+Keep the Dispatcher secret separately at `/etc/ai-services/secrets/dispatcher-token`.
+Plaintext bot keys must not be placed in the mounted registry directory.
 
-```bash
-docker tag YOUR_COMPATIBLE_COQUI_IMAGE ai-services/coqui-tts:1.0
-```
-
-Alternatively set `TTS_IMAGE` when creating the TTS container if your compatible image has the same entrypoint/path contract:
-
-```bash
-TTS_IMAGE=your-registry/your-coqui-image:tag \
-  docker compose -f engines/tts/compose.yaml create
-```
-
-TTS is the only engine in this reference snapshot whose original custom image build recipe was not preserved in the private code mirror. The repository documents this explicitly instead of inventing a supposedly tested recipe.
-
-## 7a. Create runtime authentication secrets
-
-Create a host-only directory outside the Git checkout:
-
-```bash
-sudo install -d -m 0700 -o root -g root /etc/ai-services/secrets
-```
-
-Generate one high-entropy API key per bot. Store only each key's SHA-256 digest in `/etc/ai-services/secrets/client-tokens.json` using this shape:
-
-```json
-{
-  "version": 1,
-  "clients": [
-    {
-      "client_id": "example-bot",
-      "token_sha256": "<64-hex-sha256>",
-      "scopes": ["gateway", "mcp"],
-      "enabled": true
-    }
-  ]
-}
-```
-
-Create a separate random shared secret in `/etc/ai-services/secrets/dispatcher-token` for Gateway-to-Dispatcher control traffic. Both secret files should be `root:root` mode `0400`.
-
-For a Tailscale-only deployment, create an environment file such as `/etc/ai-services/runtime.env`:
+Protected directories use mode 0700; secret files use 0400. Bind addresses are
+non-secret settings in `/etc/ai-services/runtime.env`:
 
 ```text
-GATEWAY_BIND_ADDRESS=<tailscale-ip>
-MCP_BIND_ADDRESS=<tailscale-ip>
+GATEWAY_BIND_ADDRESS=<trusted-private-ip>
+MCP_BIND_ADDRESS=<trusted-private-ip>
 AI_SECRETS_DIR=/etc/ai-services/secrets
+AI_CLIENT_REGISTRY_DIR=/etc/ai-services/clients
 ```
 
-Use `docker compose --env-file /etc/ai-services/runtime.env ...` when creating or recreating Gateway, Dispatcher, and MCP. Keep each bot's plaintext API key in that bot's own secret store; the server-side client registry stores only its SHA-256 digest.
-
-When manually testing protected Gateway endpoints, load a bot key into your shell:
-
-```bash
-read -rsp "AI API key: " AI_API_KEY; echo
-```
+Use `docker compose --env-file /etc/ai-services/runtime.env ...` in an appropriately
+privileged operator session. The first code/mount upgrade requires Gateway/MCP
+recreation. Routine credential edits after that are hot-reloaded without restart.
+For manual tests, securely load a client key into `AI_API_KEY`; never echo it.
 
 ## 8. Create the engine containers
 
@@ -238,13 +204,13 @@ docker compose --env-file /etc/ai-services/runtime.env build
 docker compose --env-file /etc/ai-services/runtime.env up -d
 ```
 
-The Gateway is the only project API that is intentionally published to the host, on port `8090`.
+Gateway publishes port `8090`; optional MCP publishes `8091`. Both must use a trusted private bind address. Dispatcher remains unexposed.
 
 Verify:
 
 ```bash
-curl -fsS http://localhost:8090/health
-curl -fsS http://localhost:8090/v1/models \
+curl -fsS "http://$GATEWAY_BIND_ADDRESS:8090/health"
+curl -fsS "http://$GATEWAY_BIND_ADDRESS:8090/v1/models" \
   -H "Authorization: Bearer $AI_API_KEY"
 ```
 
@@ -354,3 +320,13 @@ client
 ```
 
 There is no hidden scheduler and no MCP requirement. Read `ARCHITECTURE.md` and the Python files in `dispatcher/` if you want to change the arbitration behavior.
+
+## Optional MCP and client setup
+
+Build/start with `docker compose --env-file /etc/ai-services/runtime.env -f mcp/compose.yaml up -d --build`.
+Gateway and MCP share code from the repository root. Manual builds must use
+`docker build -f gateway/Dockerfile .` and `docker build -f mcp/Dockerfile .` from
+that root, not an isolated component-directory build context.
+
+See [CLIENTS.md](CLIENTS.md) for the exact supported protocol subset, buffered SSE,
+per-client scopes, templates and framework compatibility limits.

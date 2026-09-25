@@ -1,0 +1,12 @@
+# Merge this MCP section with an existing Hermes config; keep its primary model.
+# This is the recommended path with the reference server's 16384-token LLM.
+mcp_servers:
+  ai-services:
+    url: http://ai-services.example.internal:8091/mcp
+    headers:
+      Authorization: "Bearer ${AI_SERVICES_API_KEY}"
+    timeout: 600
+    connect_timeout: 30
+    supports_parallel_tool_calls: false
+    tools:
+      include: [embed_text, rerank_documents, read_document, transcribe_audio, generate_speech]

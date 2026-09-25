@@ -1,0 +1,13 @@
+# OPTIONAL MODEL TEMPLATE, NOT ACCEPTED FOR FULL HERMES AGENT USE WITH THIS 16K SERVER.
+# Current Hermes docs require >=64000 context for agent tool use. Do not lie about
+# context_length or increase the 10GB GPU server's context without separate tests.
+providers:
+  ai-services:
+    api: http://ai-services.example.internal:8090/v1
+    key_env: AI_SERVICES_API_KEY
+    transport: chat_completions
+    context_length: 16384
+model:
+  provider: custom:ai-services
+  default: qwen3-8b
+  context_length: 16384
