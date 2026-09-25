@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 import yaml
 ROOT=Path(__file__).resolve().parents[1]
@@ -36,4 +37,5 @@ def test_hermes_templates_do_not_misstate_context_capacity():
 def test_no_real_deployment_address_in_templates():
     for path in EXAMPLES.iterdir():
         text=path.read_text()
-        assert '100.107.' not in text and '/home/fabbo' not in text
+        assert not re.search(r'/home/[^/\s]+', text)
+        assert not re.search(r'(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])', text)
