@@ -1,0 +1,35 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "ai-services/qwen3-8b",
+  "provider": {
+    "ai-services": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "AI Services",
+      "options": {
+        "baseURL": "http://ai-services.example.internal:8090/v1",
+        "apiKey": "{env:AI_SERVICES_API_KEY}",
+        "timeout": 600000
+      },
+      "models": {
+        "qwen3-8b": {
+          "name": "Qwen3 8B local",
+          "limit": {
+            "context": 16384,
+            "output": 2048
+          }
+        }
+      }
+    }
+  },
+  "mcp": {
+    "ai-services": {
+      "type": "remote",
+      "url": "http://ai-services.example.internal:8091/mcp",
+      "oauth": false,
+      "headers": {
+        "Authorization": "Bearer {env:AI_SERVICES_API_KEY}"
+      },
+      "timeout": 600000
+    }
+  }
+}

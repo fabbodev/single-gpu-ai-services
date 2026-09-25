@@ -1,0 +1,9 @@
+# GolemBot selects an engine; not every engine speaks Chat Completions.
+# Pair with opencode.json in the bot workspace. Do not overwrite a live bot config.
+name: ai-services-example
+engine: opencode
+model: ai-services/qwen3-8b
+provider:
+  baseUrl: http://ai-services.example.internal:8090/v1
+  apiKey: "${AI_SERVICES_API_KEY}"
+  model: ai-services/qwen3-8b

@@ -125,3 +125,11 @@ CI does **not** have the RTX 3080 or model weights. After deployment, perform on
 The HTTP MCP endpoint requires the same per-bot bearer token model as Gateway. Configure the MCP client to send `Authorization: Bearer <bot-api-key>`. Tokens used through MCP require both `mcp` and `gateway` scopes because FastMCP forwards the original caller token to Gateway instead of replacing every caller with one shared service identity.
 
 The client token file contains only SHA-256 hashes. MCP file arguments are additionally bounded by `MCP_MAX_FILE_BYTES` (64 MiB by default) before base64 decoding.
+
+## Phase 5C client authorization
+
+MCP requires `mcp` and `gateway` transport scopes plus the tool's capability.
+Every tool entry rechecks the current registry, including established sessions.
+Mount the dedicated registry directory, not an individual file or the Dispatcher
+secret directory. See [AUTH.md](AUTH.md) for migration and [CLIENTS.md](CLIENTS.md)
+for supported agent configurations. Permission denial occurs before Gateway/GPU use.
