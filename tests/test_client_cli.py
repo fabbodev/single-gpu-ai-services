@@ -138,3 +138,21 @@ def test_dotdot_cannot_place_plaintext_inside_registry_directory(reg):
     before = reg.read_bytes()
     command(reg,'create','bot','--scopes','gateway,llm','--token-file',output,ok=False)
     assert not (reg.parent/'leaked-token').exists() and reg.read_bytes()==before
+
+
+def test_oversized_registry_write_is_rejected_before_key_delivery(reg, monkeypatch):
+    from client_access import admin
+    before = reg.read_bytes()
+    out = token_path(reg, 'oversized')
+    monkeypatch.setattr(admin, 'MAX_REGISTRY_BYTES', 256, raising=False)
+    rc = admin.main(['--registry', str(reg), 'create', 'large', '--scopes', 'gateway,llm',
+                     '--owner', 'x' * 200, '--purpose', 'y' * 200, '--token-file', str(out)])
+    assert rc != 0 and reg.read_bytes() == before and not out.exists()
+
+
+def test_cli_rejects_fifo_instead_of_hanging(reg):
+    reg.unlink()
+    os.mkfifo(reg, 0o600)
+    result = subprocess.run([sys.executable, str(CLI), '--registry', str(reg), 'list'],
+                            capture_output=True, text=True, timeout=2)
+    assert result.returncode != 0

@@ -12,7 +12,7 @@ import stat
 import sys
 import tempfile
 
-from client_access.registry import CAPABILITIES, HASH_PATTERN, ID_PATTERN, read_registry, validate_registry, validate_scopes
+from client_access.registry import CAPABILITIES, HASH_PATTERN, ID_PATTERN, MAX_REGISTRY_BYTES, read_registry, validate_registry, validate_scopes
 
 DEFAULT_REGISTRY = '/etc/ai-services/clients/client-tokens.json'
 
@@ -51,9 +51,16 @@ def registry_lock(path):
         os.close(fd)
 
 
-def atomic_write(path, data):
+def encode_registry(data):
     data = validate_registry(data)
     raw = (json.dumps(data, indent=2, sort_keys=True) + '\n').encode()
+    if len(raw) > MAX_REGISTRY_BYTES:
+        raise ValueError('registry exceeds the reader byte limit')
+    return raw
+
+
+def atomic_write(path, data):
+    raw = encode_registry(data)
     fd, temp = tempfile.mkstemp(prefix='.registry-', dir=path.parent)
     try:
         with os.fdopen(fd, 'wb') as f:
@@ -136,7 +143,7 @@ def mutate(args):
             row['updated_at'] = timestamp
         data['revision'] += 1
         data['updated_at'] = timestamp
-        validate_registry(data)
+        encode_registry(data)
         # Validate before delivering any key. Exclusive output creation must succeed
         # before replacing the registry, so a delivery failure cannot lock a user out.
         if token is not None: write_token(args.token_file, token, path)

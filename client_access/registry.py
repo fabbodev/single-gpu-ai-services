@@ -110,7 +110,7 @@ def _fingerprint(s):
 
 
 def _read(path):
-    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW
+    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
     with os.fdopen(os.open(path, flags), 'rb') as f:
         before = os.fstat(f.fileno())
         if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_REGISTRY_BYTES:
